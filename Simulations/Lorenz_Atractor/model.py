@@ -43,7 +43,7 @@ def f_gen(x):
 def f(x):
 
     #A = torch.add(torch.einsum('nhw,wa->nh', B, x).T,C)
-    A = (torch.add(torch.reshape(torch.matmul(B, x),(m,m)).T,C)).to(dev)
+    A = (torch.add(torch.reshape(torch.matmul(B, x.to(dev)),(m,m)).T,C)).to(dev)
     
     # Taylor Expansion for F    
     F = torch.eye(m)
@@ -51,16 +51,16 @@ def f(x):
         F_add = (torch.matrix_power(A*delta_t, j)/math.factorial(j)).to(dev)
         F = torch.add(F, F_add).to(dev)
 
-    return torch.matmul(F, x)
+    return torch.matmul(F, x.to(dev)).cpu()
 
 def h(x):
-    return torch.matmul(H_design,x).to(dev)
+    return torch.matmul(H_design,x.to(dev)).to(dev)
     #return toSpherical(x)
 
 def fInacc(x):
 
     #A = torch.add(torch.einsum('nhw,wa->nh', B, x).T,C)
-    A = torch.add(torch.reshape(torch.matmul(B_mod, x),(m,m)).T,C_mod)
+    A = torch.add(torch.reshape(torch.matmul(B_mod, x.to(dev)),(m,m)).T,C_mod)
     
     # Taylor Expansion for F    
     F = torch.eye(m)
@@ -68,7 +68,7 @@ def fInacc(x):
         F_add = (torch.matrix_power(A*delta_t_mod, j)/math.factorial(j)).to(dev)
         F = torch.add(F, F_add).to(dev)
 
-    return torch.matmul(F, x)
+    return torch.matmul(F, x.to(dev)).cpu()
 
 def fRotate(x):
     A = (torch.add(torch.reshape(torch.matmul(B, x),(m,m)).T,C)).to(dev)

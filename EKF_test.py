@@ -20,9 +20,11 @@ def EKFTest(SysModel, test_input, test_target, modelKnowledge = 'full', allState
     KG_array = torch.zeros_like(EKF.KG_array)
     EKF_out = torch.empty([N_T, SysModel.m, SysModel.T_test])
     start = time.time()
+    sub_time = 0
     for j in range(0, N_T):
         EKF.GenerateSequence(test_input[j, :, :], EKF.T_test)
-
+        sub_start = time.time()
+        print(f"On step {j}, {j/N_T*100}% done, {N_T-j} steps remain. Previous step took {sub_time} seconds.")
         if(allStates):
             MSE_EKF_linear_arr[j] = loss_fn(EKF.x, test_target[j, :, :]).item()
         else:
@@ -30,6 +32,8 @@ def EKFTest(SysModel, test_input, test_target, modelKnowledge = 'full', allState
             MSE_EKF_linear_arr[j] = loss_fn(EKF.x[loc,:], test_target[j, :, :]).item()
         KG_array = torch.add(EKF.KG_array, KG_array) 
         EKF_out[j,:,:] = EKF.x
+        sub_end = time.time()
+        sub_time = sub_end-sub_start
     end = time.time()
     t = end - start
     # Average KG_array over Test Examples
