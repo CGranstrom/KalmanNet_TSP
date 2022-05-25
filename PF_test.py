@@ -13,13 +13,13 @@ class Model(pyparticleest.models.nlg.NonlinearGaussianInitialGaussian):
             x0 = SystemModel.m1x_0
         else:
             x0 = x_0
-        P0 = SystemModel.m2x_0
-        Q = SystemModel.Q.numpy()
-        R = SystemModel.R.numpy()
-        super(Model, self).__init__(x0=x0, Px0=P0, Q=Q, R=R)
+        P0 = SystemModel.m2x_0.cpu()
+        Q = SystemModel.Q.cpu().numpy()
+        R = SystemModel.R.cpu().numpy()
+        super(Model, self).__init__(x0=x0.cpu(), Px0=P0, Q=Q, R=R)
         self.f = SystemModel.f
         self.n = SystemModel.n
-        self.g = lambda x: torch.squeeze(SystemModel.h(x))
+        self.g = lambda x: torch.squeeze(SystemModel.h(x)).cpu()
         self.m = SystemModel.m
 
 
@@ -50,17 +50,25 @@ def PFTest(SysModel, test_input, test_target, n_part=100):
     PF_out = torch.empty([N_T, SysModel.m, SysModel.T_test])
 
     start = time.time()
-
+    sub_time = 0
     for j in range(N_T):
+        sub_start = time.time()
+        print(f"On step {j}, {j/N_T*100}% done, {N_T-j} steps remain. Previous step took {sub_time} seconds.")
         model = Model(SysModel, test_target[j, :, 0])
-        y_in = test_input[j, :, :].T.numpy().squeeze()
+        y_in = test_input[j, :, :].T.cpu().numpy().squeeze()
         sim = simulator.Simulator(model, u=None, y=y_in)
         sim.simulate(n_part, 0)
         PF_out[j, :, :] = torch.from_numpy(sim.get_filtered_mean()[1:,].T).float()
+        sub_end = time.time()
+        sub_time = sub_end-sub_start
 
-
+    sub_time = 0
     for j in range(N_T):
+        sub_start = time.time()
+        print(f"On step {j}, {j/N_T*100}% done, {N_T-j} steps remain. Previous step took {sub_time} seconds.")
         MSE_PF_linear_arr[j] = loss_fn(torch.tensor(PF_out[j, :, :]), test_target[j, :, :])
+        sub_end = time.time()
+        sub_time = sub_end-sub_start
 
     end = time.time()
     t = end - start

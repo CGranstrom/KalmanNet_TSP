@@ -49,7 +49,7 @@ class ExtendedKalmanFilter:
     # Predict
     def Predict(self):
         # Predict the 1-st moment of x
-        self.m1x_prior = torch.squeeze(self.f(self.m1x_posterior))
+        self.m1x_prior = torch.squeeze(self.f(self.m1x_posterior)).to(torch.device("cuda:0"))
         # Compute the Jacobians
         self.UpdateJacobians(getJacobian(self.m1x_posterior,self.fString), getJacobian(self.m1x_prior, self.hString))
         # Predict the 2-nd moment of x
