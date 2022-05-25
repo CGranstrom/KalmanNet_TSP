@@ -20,8 +20,8 @@ from Plot import Plot_extended as Plot
 from filing_paths import path_model
 import sys
 sys.path.insert(1, path_model)
-from parameters import T, T_test, m1x_0, m2x_0, m, n,delta_t_gen,delta_t
-from model import f, h, fInacc, hInacc, fRotate, h_nonlinear
+from parameters import T, T_test, m1x_0, m2x_0, m, n#,delta_t_gen,delta_t
+from model import f, h, fInacc, hInacc#, fRotate, h_nonlinear
 
 if torch.cuda.is_available():
    dev = torch.device("cuda:0")  # you can continue going on here, like cuda:1 cuda:2....etc.
@@ -207,17 +207,17 @@ for index in range(0, len(r)):
    
    print("Evaluate EKF true")
    [MSE_EKF_linear_arr, MSE_EKF_linear_avg, MSE_EKF_dB_avg, EKF_KG_array, EKF_out] = EKFTest(sys_model_optq, test_input, test_target)
-   
+
    print("Evaluate UKF True")
    [MSE_UKF_linear_arr, MSE_UKF_linear_avg, MSE_UKF_dB_avg, UKF_out] = UKFTest(sys_model_optq, test_input, test_target)
-   
+
    print("Evaluate PF True")
    [MSE_PF_linear_arr, MSE_PF_linear_avg, MSE_PF_dB_avg, PF_out] = PFTest(sys_model_optq, test_input, test_target)
-   
+
    #Evaluate partial_f
    print("Evaluate EKF Partial")
    [MSE_EKF_linear_arr_partialf, MSE_EKF_linear_avg_partialf, MSE_EKF_dB_avg_partialf, EKF_KG_array_partialf, EKF_out_partialf] = EKFTest(sys_model_partialf_optq, test_input, test_target)
-   
+
    print("Evaluate UKF Partial")
    [MSE_UKF_linear_arr_partialf, MSE_UKF_linear_avg_partialf, MSE_UKF_dB_avg_partialf, UKF_out_partialf] = UKFTest(sys_model_partialf_optq, test_input, test_target)
 
@@ -228,7 +228,7 @@ for index in range(0, len(r)):
    
    # Save results
 
-   FilterfolderName = 'Filters/DT case/histogram/procmis/T2000' + '/'
+   FilterfolderName = 'Filters/test_run' + '/'
    torch.save({'MSE_EKF_linear_arr': MSE_EKF_linear_arr,
                'MSE_EKF_dB_avg': MSE_EKF_dB_avg,
                'EKF_out':EKF_out,
@@ -274,7 +274,7 @@ for index in range(0, len(r)):
 # KNet_Pipeline.setModel(KNet_model)
 # KNet_Pipeline.setTrainingParams(n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4)
 
-# KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
+# KNet_Pipeline.model = torch.load(modelFolder+"model_KalmanNet.pt")
 
 # KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
 # [KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
@@ -292,7 +292,7 @@ for index in range(0, len(r)):
 # KNet_Pipeline.setModel(KNet_model)
 # KNet_Pipeline.setTrainingParams(n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4)
 
-# # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet_obsmis_rq1030_T2000.pt",map_location=dev)  
+# # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet_obsmis_rq1030_T2000.pt",map_location=dev)
 
 # KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
 # [KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
@@ -300,7 +300,7 @@ for index in range(0, len(r)):
 
 # # Save trajectories
 # # trajfolderName = 'KNet' + '/'
-# # DataResultName = traj_resultName[rindex]
+# # DataResultName = traj_resultName[0] #[rindex]
 # # # EKF_sample = torch.reshape(EKF_out[0,:,:],[1,m,T_test])
 # # # EKF_Partial_sample = torch.reshape(EKF_out_partial[0,:,:],[1,m,T_test])
 # # # target_sample = torch.reshape(test_target[0,:,:],[1,m,T_test])
