@@ -228,7 +228,7 @@ for index in range(0, len(r)):
    
    # Save results
 
-   FilterfolderName = 'Filters/test_run' + '/'
+   FilterfolderName = 'Filters/main_lorenz_Lor_path_model_results' + '/'
    torch.save({'MSE_EKF_linear_arr': MSE_EKF_linear_arr,
                'MSE_EKF_dB_avg': MSE_EKF_dB_avg,
                'EKF_out':EKF_out,
