@@ -109,18 +109,18 @@ for index in range(0,len(r2)):
    KNet_Pipeline.save()
 
    
-   print("KNet with partial model info")
-   modelFolder = 'KNet' + '/'
-   KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KNetPartial_"+ dataFileName[index])
-   KNet_Pipeline.setssModel(sys_model_partialh)
-   KNet_model = KalmanNetNN()
-   KNet_model.Build(sys_model_partialh)
-   KNet_Pipeline.setModel(KNet_model)
-   KNet_Pipeline.setTrainingParams(n_Epochs=500, n_Batch=30, learningRate=1E-3, weightDecay=1E-5)
+   # print("KNet with partial model info")
+   # modelFolder = 'KNet' + '/'
+   # KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KNetPartial_"+ dataFileName[index])
+   # KNet_Pipeline.setssModel(sys_model_partialh)
+   # KNet_model = KalmanNetNN()
+   # KNet_model.Build(sys_model_partialh)
+   # KNet_Pipeline.setModel(KNet_model)
+   # KNet_Pipeline.setTrainingParams(n_Epochs=500, n_Batch=30, learningRate=1E-3, weightDecay=1E-5)
 
-   # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
-   KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
-   [KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
-   KNet_Pipeline.save()
+   # # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
+   # KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
+   # [KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
+   # KNet_Pipeline.save()
 
 
