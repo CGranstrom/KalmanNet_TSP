@@ -3,19 +3,22 @@ from torch.distributions.multivariate_normal import MultivariateNormal
 
 from filing_paths import path_model
 import sys
+
 sys.path.insert(1, path_model)
 from parameters import delta_t, delta_t_gen, variance
 
 
 if torch.cuda.is_available():
-    cuda0 = torch.device("cuda:0")  # you can continue going on here, like cuda:1 cuda:2....etc.
-    torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    cuda0 = torch.device(
+        "cuda:0"
+    )  # you can continue going on here, like cuda:1 cuda:2....etc.
+    torch.set_default_tensor_type("torch.cuda.FloatTensor")
 else:
-   cuda0 = torch.device("cpu")
-   print("Running on the CPU")
+    cuda0 = torch.device("cpu")
+    print("Running on the CPU")
+
 
 class SystemModel:
-
     def __init__(self, f, q, h, r, T, T_test, m, n, modelname):
 
         ####################
@@ -29,16 +32,30 @@ class SystemModel:
         self.q = q
 
         self.delta_t = delta_t
-        if self.modelname == 'pendulum':
-            self.Q = q * q * torch.tensor([[(delta_t**3)/3, (delta_t**2)/2],
-                                           [(delta_t**2)/2, delta_t]])
-        elif self.modelname == 'pendulum_gen':
-            self.Q = q * q * torch.tensor([[(delta_t_gen**3)/3, (delta_t_gen**2)/2],
-                                           [(delta_t_gen**2)/2, delta_t_gen]])
+        if self.modelname == "pendulum":
+            self.Q = (
+                q
+                * q
+                * torch.tensor(
+                    [
+                        [(delta_t ** 3) / 3, (delta_t ** 2) / 2],
+                        [(delta_t ** 2) / 2, delta_t],
+                    ]
+                )
+            )
+        elif self.modelname == "pendulum_gen":
+            self.Q = (
+                q
+                * q
+                * torch.tensor(
+                    [
+                        [(delta_t_gen ** 3) / 3, (delta_t_gen ** 2) / 2],
+                        [(delta_t_gen ** 2) / 2, delta_t_gen],
+                    ]
+                )
+            )
         else:
             self.Q = q * q * torch.eye(self.m)
-
-        
 
         #########################
         ### Observation Model ###
@@ -49,7 +66,7 @@ class SystemModel:
         self.r = r
         self.R = r * r * torch.eye(self.n)
 
-        #Assign T and T_test
+        # Assign T and T_test
         self.T = T
         self.T_test = T_test
 
@@ -60,7 +77,6 @@ class SystemModel:
 
         self.m1x_0 = torch.squeeze(m1x_0).to(cuda0)
         self.m2x_0 = torch.squeeze(m2x_0).to(cuda0)
-
 
     #########################
     ### Update Covariance ###
@@ -78,7 +94,6 @@ class SystemModel:
         self.Q = Q
 
         self.R = R
-
 
     #########################
     ### Generate Sequence ###
@@ -98,7 +113,7 @@ class SystemModel:
             ########################
             # Process Noise
             if self.q == 0:
-                xt = self.f(self.x_prev)              
+                xt = self.f(self.x_prev)
             else:
                 xt = self.f(self.x_prev)
                 mean = torch.zeros([self.m])
@@ -107,9 +122,9 @@ class SystemModel:
                     eq = distrib.rsample()
                 else:
                     eq = torch.normal(mean, self.q)
-                         
+
                 # Additive Process Noise
-                xt = torch.add(xt,eq)
+                xt = torch.add(xt, eq)
 
             ################
             ### Emission ###
@@ -123,7 +138,7 @@ class SystemModel:
             # er = torch.transpose(torch.tensor(er), 0, 1)
 
             # Additive Observation Noise
-            yt = torch.add(yt,er)
+            yt = torch.add(yt, er)
 
             ########################
             ### Squeeze to Array ###
@@ -151,13 +166,13 @@ class SystemModel:
         # Allocate Empty Array for Target
         self.Target = torch.empty(size, self.m, T)
 
-        initConditions = self.m1x_0 
+        initConditions = self.m1x_0
 
         ### Generate Examples
         for i in range(0, size):
             # Generate Sequence
             # Randomize initial conditions to get a rich dataset
-            if(randomInit):
+            if randomInit:
                 initConditions = torch.rand_like(self.m1x_0) * variance
             self.InitSequence(initConditions, self.m2x_0)
             self.GenerateSequence(self.Q, self.R, T)
@@ -167,4 +182,3 @@ class SystemModel:
 
             # Training sequence output
             self.Target[i, :, :] = self.x
-

@@ -6,14 +6,13 @@ from Plot import Plot
 
 
 class Pipeline_KF:
-
     def __init__(self, Time, folderName, modelName):
         super().__init__()
         self.Time = Time
-        self.folderName = folderName + '/'
+        self.folderName = folderName + "/"
         self.modelName = modelName
-        self.modelFileName = self.folderName + "model_" + self.modelName 
-        self.PipelineName = self.folderName + "pipeline_" + self.modelName 
+        self.modelFileName = self.folderName + "model_" + self.modelName
+        self.PipelineName = self.folderName + "pipeline_" + self.modelName
 
     def save(self):
         torch.save(self, self.PipelineName)
@@ -26,19 +25,20 @@ class Pipeline_KF:
 
     def setTrainingParams(self, n_Epochs, n_Batch, learningRate, weightDecay):
         self.N_Epochs = n_Epochs  # Number of Training Epochs
-        self.N_B = n_Batch # Number of Samples in Batch
-        self.learningRate = learningRate # Learning Rate
-        self.weightDecay = weightDecay # L2 Weight Regularization - Weight Decay
+        self.N_B = n_Batch  # Number of Samples in Batch
+        self.learningRate = learningRate  # Learning Rate
+        self.weightDecay = weightDecay  # L2 Weight Regularization - Weight Decay
 
         # MSE LOSS Function
-        self.loss_fn = nn.MSELoss(reduction='mean')
+        self.loss_fn = nn.MSELoss(reduction="mean")
 
         # Use the optim package to define an Optimizer that will update the weights of
         # the model for us. Here we will use Adam; the optim package contains many other
         # optimization algoriths. The first argument to the Adam constructor tells the
         # optimizer which Tensors it should update.
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learningRate, weight_decay=self.weightDecay)
-
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(), lr=self.learningRate, weight_decay=self.weightDecay
+        )
 
     def NNTrain(self, n_Examples, train_input, train_target, n_CV, cv_input, cv_target):
 
@@ -78,13 +78,15 @@ class Pipeline_KF:
                     x_out_cv[:, t] = self.model(y_cv[:, t])
 
                 # Compute Training Loss
-                MSE_cv_linear_batch[j] = self.loss_fn(x_out_cv, cv_target[j, :, :]).item()
+                MSE_cv_linear_batch[j] = self.loss_fn(
+                    x_out_cv, cv_target[j, :, :]
+                ).item()
 
             # Average
             self.MSE_cv_linear_epoch[ti] = torch.mean(MSE_cv_linear_batch)
             self.MSE_cv_dB_epoch[ti] = 10 * torch.log10(self.MSE_cv_linear_epoch[ti])
 
-            if (self.MSE_cv_dB_epoch[ti] < self.MSE_cv_dB_opt):
+            if self.MSE_cv_dB_epoch[ti] < self.MSE_cv_dB_opt:
                 self.MSE_cv_dB_opt = self.MSE_cv_dB_epoch[ti]
                 self.MSE_cv_idx_opt = ti
                 torch.save(self.model, self.modelFileName)
@@ -119,7 +121,9 @@ class Pipeline_KF:
 
             # Average
             self.MSE_train_linear_epoch[ti] = torch.mean(MSE_train_linear_batch)
-            self.MSE_train_dB_epoch[ti] = 10 * torch.log10(self.MSE_train_linear_epoch[ti])
+            self.MSE_train_dB_epoch[ti] = 10 * torch.log10(
+                self.MSE_train_linear_epoch[ti]
+            )
 
             ##################
             ### Optimizing ###
@@ -144,15 +148,35 @@ class Pipeline_KF:
             ########################
             ### Training Summary ###
             ########################
-            print(ti, "MSE Training :", self.MSE_train_dB_epoch[ti], "[dB]", "MSE Validation :", self.MSE_cv_dB_epoch[ti],
-                  "[dB]")
+            print(
+                ti,
+                "MSE Training :",
+                self.MSE_train_dB_epoch[ti],
+                "[dB]",
+                "MSE Validation :",
+                self.MSE_cv_dB_epoch[ti],
+                "[dB]",
+            )
 
-            if (ti > 1):
+            if ti > 1:
                 d_train = self.MSE_train_dB_epoch[ti] - self.MSE_train_dB_epoch[ti - 1]
                 d_cv = self.MSE_cv_dB_epoch[ti] - self.MSE_cv_dB_epoch[ti - 1]
-                print("diff MSE Training :", d_train, "[dB]", "diff MSE Validation :", d_cv, "[dB]")
+                print(
+                    "diff MSE Training :",
+                    d_train,
+                    "[dB]",
+                    "diff MSE Validation :",
+                    d_cv,
+                    "[dB]",
+                )
 
-            print("Optimal idx:", self.MSE_cv_idx_opt, "Optimal :", self.MSE_cv_dB_opt, "[dB]")
+            print(
+                "Optimal idx:",
+                self.MSE_cv_idx_opt,
+                "Optimal :",
+                self.MSE_cv_dB_opt,
+                "[dB]",
+            )
 
     def NNTest(self, n_Test, test_input, test_target):
 
@@ -161,14 +185,14 @@ class Pipeline_KF:
         self.MSE_test_linear_arr = torch.empty([self.N_T])
 
         # MSE LOSS Function
-        loss_fn = nn.MSELoss(reduction='mean')
+        loss_fn = nn.MSELoss(reduction="mean")
 
         self.model = torch.load(self.modelFileName)
 
         self.model.eval()
 
         torch.no_grad()
-        
+
         start = time.time()
 
         for j in range(0, self.N_T):
@@ -182,7 +206,9 @@ class Pipeline_KF:
             for t in range(0, self.ssModel.T):
                 x_out_test[:, t] = self.model(y_mdl_tst[:, t])
 
-            self.MSE_test_linear_arr[j] = loss_fn(x_out_test, test_target[j, :, :]).item()
+            self.MSE_test_linear_arr[j] = loss_fn(
+                x_out_test, test_target[j, :, :]
+            ).item()
 
         end = time.time()
         t = end - start
@@ -203,13 +229,23 @@ class Pipeline_KF:
         # Print Run Time
         print("Inference Time:", t)
 
-        return [self.MSE_test_linear_arr, self.MSE_test_linear_avg, self.MSE_test_dB_avg, x_out_test]
+        return [
+            self.MSE_test_linear_arr,
+            self.MSE_test_linear_avg,
+            self.MSE_test_dB_avg,
+            x_out_test,
+        ]
 
     def PlotTrain_KF(self, MSE_KF_linear_arr, MSE_KF_dB_avg):
 
         self.Plot = Plot(self.folderName, self.modelName)
 
-        self.Plot.NNPlot_epochs(self.N_Epochs, MSE_KF_dB_avg,
-                                self.MSE_test_dB_avg, self.MSE_cv_dB_epoch, self.MSE_train_dB_epoch)
+        self.Plot.NNPlot_epochs(
+            self.N_Epochs,
+            MSE_KF_dB_avg,
+            self.MSE_test_dB_avg,
+            self.MSE_cv_dB_epoch,
+            self.MSE_train_dB_epoch,
+        )
 
         self.Plot.NNPlot_Hist(MSE_KF_linear_arr, self.MSE_test_linear_arr)

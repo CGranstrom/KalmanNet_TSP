@@ -6,20 +6,23 @@ import torch
 from filing_paths import path_model
 
 import sys
+
 sys.path.insert(1, path_model)
 print(sys.path)
 from model import getJacobian
 
 if torch.cuda.is_available():
-    cuda0 = torch.device("cuda:0")  # you can continue going on here, like cuda:1 cuda:2....etc.
-    torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    cuda0 = torch.device(
+        "cuda:0"
+    )  # you can continue going on here, like cuda:1 cuda:2....etc.
+    torch.set_default_tensor_type("torch.cuda.FloatTensor")
 else:
-   cuda0 = torch.device("cpu")
-   print("Running on the CPU")
+    cuda0 = torch.device("cpu")
+    print("Running on the CPU")
+
 
 class ExtendedKalmanFilter:
-
-    def __init__(self, SystemModel, mode='full'):
+    def __init__(self, SystemModel, mode="full"):
         self.f = SystemModel.f
         self.m = SystemModel.m
 
@@ -36,22 +39,27 @@ class ExtendedKalmanFilter:
         self.T_test = SystemModel.T_test
 
         # Pre allocate KG array
-        self.KG_array = torch.zeros((self.T_test,self.m,self.n))
+        self.KG_array = torch.zeros((self.T_test, self.m, self.n))
 
         # Full knowledge about the model or partial? (Should be made more elegant)
-        if(mode == 'full'):
-            self.fString = 'ModAcc'
-            self.hString = 'ObsAcc'
-        elif(mode == 'partial'):
-            self.fString = 'ModInacc'
-            self.hString = 'ObsInacc'
-   
+        if mode == "full":
+            self.fString = "ModAcc"
+            self.hString = "ObsAcc"
+        elif mode == "partial":
+            self.fString = "ModInacc"
+            self.hString = "ObsInacc"
+
     # Predict
     def Predict(self):
         # Predict the 1-st moment of x
-        self.m1x_prior = torch.squeeze(self.f(self.m1x_posterior)).to(torch.device("cuda:0"))
+        self.m1x_prior = torch.squeeze(self.f(self.m1x_posterior)).to(
+            torch.device("cuda:0")
+        )
         # Compute the Jacobians
-        self.UpdateJacobians(getJacobian(self.m1x_posterior,self.fString), getJacobian(self.m1x_prior, self.hString))
+        self.UpdateJacobians(
+            getJacobian(self.m1x_posterior, self.fString),
+            getJacobian(self.m1x_prior, self.hString),
+        )
         # Predict the 2-nd moment of x
         self.m2x_prior = torch.matmul(self.F, self.m2x_posterior)
         self.m2x_prior = torch.matmul(self.m2x_prior, self.F_T) + self.Q
@@ -67,7 +75,7 @@ class ExtendedKalmanFilter:
         self.KG = torch.matmul(self.m2x_prior, self.H_T)
         self.KG = torch.matmul(self.KG, torch.inverse(self.m2y))
 
-        #Save KalmanGain
+        # Save KalmanGain
         self.KG_array[self.i] = self.KG
         self.i += 1
 
@@ -100,10 +108,11 @@ class ExtendedKalmanFilter:
 
     def UpdateJacobians(self, F, H):
         self.F = F
-        self.F_T = torch.transpose(F,0,1)
+        self.F_T = torch.transpose(F, 0, 1)
         self.H = H
-        self.H_T = torch.transpose(H,0,1)
-        #print(self.H,self.F,'\n')
+        self.H_T = torch.transpose(H, 0, 1)
+        # print(self.H,self.F,'\n')
+
     ### Generate Sequence ###
     #########################
     def GenerateSequence(self, y, T):
@@ -111,14 +120,14 @@ class ExtendedKalmanFilter:
         self.x = torch.empty(size=[self.m, T])
         self.sigma = torch.empty(size=[self.m, self.m, T])
         # Pre allocate KG array
-        self.KG_array = torch.zeros((T,self.m,self.n))
-        self.i = 0 # Index for KG_array alocation
+        self.KG_array = torch.zeros((T, self.m, self.n))
+        self.i = 0  # Index for KG_array alocation
 
         self.m1x_posterior = torch.squeeze(self.m1x_0)
         self.m2x_posterior = torch.squeeze(self.m2x_0)
 
         for t in range(0, T):
             yt = torch.squeeze(y[:, t])
-            xt,sigmat = self.Update(yt)
+            xt, sigmat = self.Update(yt)
             self.x[:, t] = torch.squeeze(xt)
             self.sigma[:, :, t] = torch.squeeze(sigmat)

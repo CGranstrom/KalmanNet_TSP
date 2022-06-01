@@ -71,7 +71,9 @@ class KalmanNetNN(torch.nn.Module):
         # self.GRU_in = torch.empty(self.seq_len_input, self.batch_size, self.input_dim)
 
         # Initialize a Tensor for Hidden State
-        self.hn = torch.randn(self.seq_len_hidden, self.batch_size, self.hidden_dim).to(self.device,non_blocking = True)
+        self.hn = torch.randn(self.seq_len_hidden, self.batch_size, self.hidden_dim).to(
+            self.device, non_blocking=True
+        )
 
         # Iniatialize GRU Layer
         self.rnn_GRU = nn.GRU(self.input_dim, self.hidden_dim, self.n_layers)
@@ -94,12 +96,12 @@ class KalmanNetNN(torch.nn.Module):
     ##################################
     def InitSystemDynamics(self, F, H):
         # Set State Evolution Matrix
-        self.F = F.to(self.device,non_blocking = True)
+        self.F = F.to(self.device, non_blocking=True)
         self.F_T = torch.transpose(F, 0, 1)
         self.m = self.F.size()[0]
 
         # Set Observation Matrix
-        self.H = H.to(self.device,non_blocking = True)
+        self.H = H.to(self.device, non_blocking=True)
         self.H_T = torch.transpose(H, 0, 1)
         self.n = self.H.size()[0]
 
@@ -108,11 +110,11 @@ class KalmanNetNN(torch.nn.Module):
     ###########################
     def InitSequence(self, M1_0):
 
-        self.m1x_prior = M1_0.to(self.device,non_blocking = True)
+        self.m1x_prior = M1_0.to(self.device, non_blocking=True)
 
-        self.m1x_posterior = M1_0.to(self.device,non_blocking = True)
+        self.m1x_posterior = M1_0.to(self.device, non_blocking=True)
 
-        self.state_process_posterior_0 = M1_0.to(self.device,non_blocking = True)
+        self.state_process_posterior_0 = M1_0.to(self.device, non_blocking=True)
 
     ######################
     ### Compute Priors ###
@@ -120,7 +122,9 @@ class KalmanNetNN(torch.nn.Module):
     def step_prior(self):
 
         # Compute the 1-st moment of x based on model knowledge and without process noise
-        self.state_process_prior_0 = torch.matmul(self.F, self.state_process_posterior_0)
+        self.state_process_prior_0 = torch.matmul(
+            self.F, self.state_process_posterior_0
+        )
 
         # Compute the 1-st moment of y based on model knowledge and without noise
         self.obs_process_0 = torch.matmul(self.H, self.state_process_prior_0)
@@ -132,7 +136,6 @@ class KalmanNetNN(torch.nn.Module):
         # Predict the 1-st moment of y
         self.m1y = torch.matmul(self.H, self.m1x_prior)
 
-
     ##############################
     ### Kalman Gain Estimation ###
     ##############################
@@ -140,7 +143,7 @@ class KalmanNetNN(torch.nn.Module):
 
         # Reshape and Normalize the difference in X prior
         # Featture 4: x_t|t - x_t|t-1
-        #dm1x = self.m1x_prior - self.state_process_prior_0
+        # dm1x = self.m1x_prior - self.state_process_prior_0
         dm1x = self.m1x_posterior - self.m1x_prev_prior
         dm1x_reshape = torch.squeeze(dm1x)
         dm1x_norm = func.normalize(dm1x_reshape, p=2, dim=0, eps=1e-12, out=None)
@@ -187,13 +190,15 @@ class KalmanNetNN(torch.nn.Module):
         ###################
         ### Input Layer ###
         ###################
-        L1_out = self.KG_l1(KGainNet_in);
-        La1_out = self.KG_relu1(L1_out);
+        L1_out = self.KG_l1(KGainNet_in)
+        La1_out = self.KG_relu1(L1_out)
 
         ###########
         ### GRU ###
         ###########
-        GRU_in = torch.empty(self.seq_len_input, self.batch_size, self.input_dim).to(self.device,non_blocking = True)
+        GRU_in = torch.empty(self.seq_len_input, self.batch_size, self.input_dim).to(
+            self.device, non_blocking=True
+        )
         GRU_in[0, 0, :] = La1_out
         GRU_out, self.hn = self.rnn_GRU(GRU_in, self.hn)
         GRU_out_reshape = torch.reshape(GRU_out, (1, self.hidden_dim))
@@ -214,7 +219,7 @@ class KalmanNetNN(torch.nn.Module):
     ### Forward ###
     ###############
     def forward(self, yt):
-        yt = yt.to(self.device,non_blocking = True)
+        yt = yt.to(self.device, non_blocking=True)
         return self.KNet_step(yt)
 
     #########################
