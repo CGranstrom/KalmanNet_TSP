@@ -1,1 +1,7 @@
-.idea
+# user-specific stuff
+.idea/
+
+# environments
+.env
+.pyenv
+.venv
