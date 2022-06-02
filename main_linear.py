@@ -2,7 +2,7 @@ import torch
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
 import torch.nn as nn
-from Linear_sysmdl import SystemModel
+from linear_system_model import SystemModel
 from Extended_data import (
     DataGen,
     DataLoader,
@@ -26,7 +26,7 @@ from Extended_data import (
     n,
 )
 from Pipeline_KF import Pipeline_KF
-from KalmanNet_nn import KalmanNetNN
+from kalman_net import KalmanNetNN
 from datetime import datetime
 
 from KalmanFilter_test import KFTest

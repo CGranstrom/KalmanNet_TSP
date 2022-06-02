@@ -12,7 +12,7 @@ from Extended_data import (
 )
 from Extended_data import N_E, N_CV, N_T
 from Pipeline_KF import Pipeline_KF
-from KalmanNet_nn import KalmanNetNN
+from kalman_net import KalmanNetNN
 from datetime import datetime
 
 from EKF_test import EKFTest

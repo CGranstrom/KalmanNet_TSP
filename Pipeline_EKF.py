@@ -3,7 +3,7 @@ import torch.nn as nn
 import random
 import time
 
-from KalmanNet_nn import KalmanNetNN
+from kalman_net import KalmanNetNN
 from Plot import Plot
 
 
@@ -74,9 +74,9 @@ class Pipeline_EKF:
             for j in range(0, self.N_CV):
                 y_cv = cv_input[j, :, :]
                 if isinstance(self.model, KalmanNetNN):
-                    self.model.InitSequence(self.ssModel.m1x_0)
+                    self.model.init_sequence(self.ssModel.m1x_0)
                 else:
-                    self.model.InitSequence(self.ssModel.m1x_0, self.ssModel.T_test)
+                    self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.T_test)
 
                 x_out_cv = torch.empty(self.ssModel.m, self.ssModel.T_test)
                 for t in range(0, self.ssModel.T_test):
@@ -112,7 +112,7 @@ class Pipeline_EKF:
                 n_e = random.randint(0, self.N_E - 1)
 
                 y_training = train_input[n_e, :, :]
-                self.model.InitSequence(self.ssModel.m1x_0, self.ssModel.T)
+                self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.T)
 
                 x_out_training = torch.empty(self.ssModel.m, self.ssModel.T)
                 for t in range(0, self.ssModel.T):
@@ -206,7 +206,7 @@ class Pipeline_EKF:
 
             y_mdl_tst = test_input[j, :, :]
 
-            self.model.InitSequence(self.ssModel.m1x_0, self.ssModel.T_test)
+            self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.T_test)
 
             x_out_test = torch.empty(self.ssModel.m, self.ssModel.T_test)
 

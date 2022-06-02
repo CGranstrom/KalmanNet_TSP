@@ -18,7 +18,7 @@ from Extended_data import (
 from Extended_data import N_E, N_CV, N_T
 from Pipeline_EKF import Pipeline_EKF
 
-from Extended_KalmanNet_nn import KalmanNetNN
+from extended_kalman_net import KalmanNetNN
 
 from datetime import datetime
 
