@@ -51,7 +51,7 @@ class KalmanNetNN(nn.Module):
         # linear Layer
         self.KG_l1 = nn.Linear(input_dims, H1, bias=True)
 
-        # ReLU (Rectified Linear Unit) Activation Function
+        # ReLU (Rectified linear Unit) Activation Function
         self.KG_relu1 = nn.ReLU()
 
         # GRU
@@ -89,7 +89,7 @@ class KalmanNetNN(nn.Module):
         # hidden layer
         self.KG_l2 = nn.Linear(self.hidden_dim, H2, bias=True)
 
-        # ReLU (Rectified Linear Unit) Activation Function
+        # ReLU (Rectified linear Unit) Activation Function
         self.KG_relu2 = nn.ReLU()
 
         # output layer

@@ -4,7 +4,7 @@ import random
 import time
 
 from kalman_net import KalmanNetNN
-from Plot import Plot
+from plot import Plot
 
 
 class Pipeline_EKF:

@@ -2,23 +2,23 @@ import torch
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
 import torch.nn as nn
-from Extended_sysmdl import SystemModel
-from Extended_data import (
+from extended_system_model import SystemModel
+from extended_data import (
     DataGen,
     DataLoader,
     DataLoader_GPU,
     Decimate_and_perturbate_Data,
     Short_Traj_Split,
 )
-from Extended_data import N_E, N_CV, N_T
-from Pipeline_KF import Pipeline_KF
+from extended_data import N_E, N_CV, N_T
+from pipeline_KF import Pipeline_KF
 from kalman_net import KalmanNetNN
 from datetime import datetime
 
 from EKF_test import EKFTest
 from UKF_test import UKFTest
 from PF_test import PFTest
-from Plot import Plot_RTS as Plot
+from plot import Plot_RTS as Plot
 
 from filing_paths import path_model
 import sys
@@ -80,7 +80,7 @@ for index in range(0, len(r2)):
     ###################################
     ### Data Loader (Generate Data) ###
     ###################################
-    dataFolderName = "Simulations/Toy_problems" + "/"
+    dataFolderName = "simulations/toy_problems" + "/"
     dataFileName = "T100.pt"
     print("Start Data Gen")
     DataGen(sys_model, dataFolderName + dataFileName, T, T_test, randomInit=False)
@@ -160,9 +160,9 @@ for index in range(0, len(r2)):
     ##################
     ###  KalmanNet ###
     ##################
-    # print("Start KNet pipeline")
-    # modelFolder = 'KNet' + '/'
-    # KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KalmanNet")
+    # print("Start k_net pipeline")
+    # modelFolder = 'k_net' + '/'
+    # KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KalmanNet")
     # KNet_Pipeline.setssModel(sys_model)
     # KNet_model = KalmanNetNN()
     # KNet_model.Build(sys_model)

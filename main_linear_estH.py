@@ -3,14 +3,14 @@ import torch
 torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
 import torch.nn as nn
 from linear_system_model import SystemModel
-from Extended_data import (
+from extended_data import (
     DataGen,
     DataLoader,
     DataLoader_GPU,
     Decimate_and_perturbate_Data,
     Short_Traj_Split,
 )
-from Extended_data import (
+from extended_data import (
     N_E,
     N_CV,
     N_T,
@@ -25,13 +25,13 @@ from Extended_data import (
     m,
     n,
 )
-from Pipeline_KF import Pipeline_KF
+from pipeline_KF import Pipeline_KF
 from kalman_net import KalmanNetNN
 from datetime import datetime
 
-from KalmanFilter_test import KFTest
+from kalman_filter_test import KFTest
 
-from Plot import Plot_RTS as Plot
+from plot import Plot_RTS as Plot
 
 if torch.cuda.is_available():
     dev = torch.device(
@@ -83,7 +83,7 @@ for index in range(0, len(r2)):
     ###################################
     ### Data Loader (Generate Data) ###
     ###################################
-    dataFolderName = "Simulations/Linear_canonical/H_rotated" + "/"
+    dataFolderName = "simulations/linear_canonical/H_rotated" + "/"
     dataFileName = [
         "2x2_rq-1010_T100.pt",
         "2x2_rq020_T100.pt",
@@ -122,7 +122,7 @@ for index in range(0, len(r2)):
         MSE_KF_dB_avg_partialh,
     ] = KFTest(sys_model_partialh, test_input, test_target)
 
-    DatafolderName = "Filters/Linear" + "/"
+    DatafolderName = "filters/linear" + "/"
     DataResultName = "KF_HRotated" + dataFileName[index]
     torch.save(
         {
@@ -137,10 +137,10 @@ for index in range(0, len(r2)):
     ##################
     ###  KalmanNet ###
     ##################
-    print("Start KNet pipeline")
-    print("KNet with full model info")
-    modelFolder = "KNet" + "/"
-    KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KNet_" + dataFileName[index])
+    print("Start k_net pipeline")
+    print("k_net with full model info")
+    modelFolder = "k_net" + "/"
+    KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KNet_" + dataFileName[index])
     KNet_Pipeline.setssModel(sys_model)
     KNet_model = KalmanNetNN()
     KNet_model.Build(sys_model)
@@ -159,9 +159,9 @@ for index in range(0, len(r2)):
     ] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
     KNet_Pipeline.save()
 
-    print("KNet with partial model info")
-    modelFolder = "KNet" + "/"
-    KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KNetPartial_" + dataFileName[index])
+    print("k_net with partial model info")
+    modelFolder = "k_net" + "/"
+    KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KNetPartial_" + dataFileName[index])
     KNet_Pipeline.setssModel(sys_model_partialh)
     KNet_model = KalmanNetNN()
     KNet_model.Build(sys_model_partialh)
@@ -180,9 +180,9 @@ for index in range(0, len(r2)):
     ] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
     KNet_Pipeline.save()
 
-    print("KNet with estimated H")
-    modelFolder = "KNet" + "/"
-    KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KNetEstH_" + dataFileName[index])
+    print("k_net with estimated H")
+    modelFolder = "k_net" + "/"
+    KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KNetEstH_" + dataFileName[index])
     print("True Observation matrix H:", H_rotated)
     ### Least square estimation of H
     X = torch.squeeze(train_target[:, :, 0]).to(dev, non_blocking=True)

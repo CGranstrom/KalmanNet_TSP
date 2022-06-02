@@ -21,7 +21,7 @@ m1x_0_design_test = torch.ones(m, 1)
 m2x_0 = 0 * 0 * torch.eye(m)
 
 #################################################
-### Generative Parameters For Lorenz Atractor ###
+### Generative Parameters For lorenz Atractor ###
 #################################################
 
 # Auxiliar MultiDimensional Tensor B and C (they make A --> Differential equation matrix)
@@ -117,7 +117,7 @@ T_mod = math.ceil(T * ratio)
 T_test_mod = math.ceil(T_test * ratio)
 
 ##############################################
-#### Model Parameters For Lorenz Atractor ####
+#### Model Parameters For lorenz Atractor ####
 ##############################################
 
 # Auxiliar MultiDimensional Tensor B and C (they make A)

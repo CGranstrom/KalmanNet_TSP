@@ -22,7 +22,7 @@ variance = 0
 m2x_0 = variance * torch.eye(m)
 
 ##########################################
-### Generative Parameters For Pendulum ###
+### Generative Parameters For pendulum ###
 ##########################################
 
 delta_t_gen = 1e-5
@@ -81,7 +81,7 @@ T_mod = math.ceil(T * ratio)
 T_test_mod = math.ceil(T_test * ratio)
 
 #######################################
-#### Model Parameters For Pendulum ####
+#### Model Parameters For pendulum ####
 #######################################
 
 ## Rotated Observation H

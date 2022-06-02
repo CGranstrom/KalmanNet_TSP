@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import random
 import time
-from Plot import Plot
+from plot import Plot
 
 
 class Pipeline_KF:

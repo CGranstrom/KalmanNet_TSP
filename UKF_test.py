@@ -23,7 +23,7 @@ def UKFTest(
     # LOSS
     loss_fn = nn.MSELoss(reduction="mean")
 
-    # MSE [Linear]
+    # MSE [linear]
     MSE_UKF_linear_arr = torch.empty(N_T)
     # points = JulierSigmaPoints(n=SysModel.m)
     points = MerweScaledSigmaPoints(SysModel.m, alpha=0.1, beta=2.0, kappa=-1)

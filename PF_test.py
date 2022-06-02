@@ -44,7 +44,7 @@ def PFTest(SysModel, test_input, test_target, n_part=100):
     # LOSS
     loss_fn = nn.MSELoss(reduction="mean")
 
-    # MSE [Linear]
+    # MSE [linear]
     MSE_PF_linear_arr = torch.empty(N_T)
 
     PF_out = torch.empty([N_T, SysModel.m, SysModel.T_test])

@@ -1,26 +1,26 @@
-from Simulations.Lorenz_Atractor.model import fRotate
+from simulations.lorenz_attractor.model import fRotate
 import torch
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
 import random
 import torch.nn as nn
 from EKF_test import EKFTest
-from Extended_sysmdl import SystemModel
-from Extended_data import (
+from extended_system_model import SystemModel
+from extended_data import (
     DataGen,
     DataLoader_GPU,
     DataGen_True,
     Decimate_and_perturbate_Data,
     Short_Traj_Split,
 )
-from Extended_data import N_E, N_CV, N_T
-from Pipeline_EKF import Pipeline_EKF
+from extended_data import N_E, N_CV, N_T
+from pipeline_EKF import Pipeline_EKF
 
 from extended_kalman_net import KalmanNetNN
 
 from datetime import datetime
 
-from Plot import Plot_extended as Plot
+from plot import Plot_extended as Plot
 
 from filing_paths import path_model
 import sys
@@ -56,7 +56,7 @@ else:
 # r2 = torch.tensor([10])
 # r = torch.sqrt(r2)
 # q_gen = 0
-# DatafolderName = 'Simulations/Lorenz_Atractor/data' + '/'
+# DatafolderName = 'simulations/lorenz_attractor/data' + '/'
 # data_gen = 'data_gen.pt'
 # data_gen_file = torch.load(DatafolderName+data_gen, map_location=device)
 # [true_sequence] = data_gen_file['All Data']
@@ -99,7 +99,7 @@ vdB = -20  # ratio v=q2/r2
 v = 10 ** (vdB / 10)
 q2_gen = torch.mul(v, r2_gen)
 q_gen = torch.sqrt(q2_gen)
-DatafolderName = "Simulations/Lorenz_Atractor/data" + "/"
+DatafolderName = "simulations/lorenz_attractor/data" + "/"
 dataFileName = [
     "data_lor_v20_rq020_T1000.pt"
 ]  # ,'data_lor_v20_r1e-1_T2000.pt','data_lor_v20_r1e-2_T2000.pt']

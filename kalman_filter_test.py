@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import time
-from Linear_KF import KalmanFilter
+from linear_kalman_filter import KalmanFilter
 from extended_data import N_T
 
 
@@ -10,7 +10,7 @@ def KFTest(SysModel, test_input, test_target):
     # LOSS
     loss_fn = nn.MSELoss(reduction="mean")
 
-    # MSE [Linear]
+    # MSE [linear]
     MSE_KF_linear_arr = torch.empty(N_T)
 
     start = time.time()

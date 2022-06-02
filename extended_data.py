@@ -25,7 +25,7 @@ N_CV = 100
 
 N_T = 200
 
-# Sequence Length for Linear Case
+# Sequence Length for linear Case
 T = 100
 T_test = 100
 

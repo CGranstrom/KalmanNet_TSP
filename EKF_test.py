@@ -11,7 +11,7 @@ def EKFTest(SysModel, test_input, test_target, modelKnowledge="full", allStates=
     # LOSS
     loss_fn = nn.MSELoss(reduction="mean")
 
-    # MSE [Linear]
+    # MSE [linear]
     MSE_EKF_linear_arr = torch.empty(N_T)
 
     EKF = ExtendedKalmanFilter(SysModel, modelKnowledge)

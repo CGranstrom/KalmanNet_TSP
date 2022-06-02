@@ -1,5 +1,5 @@
 """# **Class: Kalman Filter**
-Theoretical Linear Kalman
+Theoretical linear Kalman
 """
 import torch
 

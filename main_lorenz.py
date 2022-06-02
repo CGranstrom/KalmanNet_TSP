@@ -7,22 +7,22 @@ from EKF_test import EKFTest
 from UKF_test import UKFTest
 from PF_test import PFTest
 
-from Extended_sysmdl import SystemModel
-from Extended_data import (
+from extended_system_model import SystemModel
+from extended_data import (
     DataGen,
     DataLoader,
     DataLoader_GPU,
     Decimate_and_perturbate_Data,
     Short_Traj_Split,
 )
-from Extended_data import N_E, N_CV, N_T
-from Pipeline_EKF import Pipeline_EKF
+from extended_data import N_E, N_CV, N_T
+from pipeline_EKF import Pipeline_EKF
 
 from extended_kalman_net import KalmanNetNN
 
 from datetime import datetime
 
-from Plot import Plot_extended as Plot
+from plot import Plot_extended as Plot
 
 from filing_paths import path_model
 import sys
@@ -59,7 +59,7 @@ print("Current Time =", strTime)
 #########################
 offset = 0
 chop = False
-DatafolderName = "Simulations/Lorenz_Atractor/data/T2000_NT100" + "/"
+DatafolderName = "simulations/lorenz_attractor/data/T2000_NT100" + "/"
 # data_gen = 'data_gen.pt'
 # data_gen_file = torch.load(DatafolderName+data_gen, map_location=dev)
 # [true_sequence] = data_gen_file['All Data']
@@ -210,7 +210,7 @@ for index in range(0, len(r)):
     #    print("Evaluate PF True")
     #    [MSE_PF_linear_arr, MSE_PF_linear_avg, MSE_PF_dB_avg, PF_out] = PFTest(sys_model_searchq, test_input, test_target)
 
-    #    # Filters only have partial info of process model
+    #    # filters only have partial info of process model
     #    sys_model_partialf_searchq = SystemModel(fInacc, qsearch[searchindex], h, r[index], T, T_test, m, n,'lor')
     #    sys_model_partialf_searchq.InitSequence(m1x_0, m2x_0)
     #    print("Evaluate EKF Partial")
@@ -237,7 +237,7 @@ for index in range(0, len(r)):
     #    print("Evaluate PF True")
     #    [MSE_PF_linear_arr, MSE_PF_linear_avg, MSE_PF_dB_avg, PF_out] = PFTest(sys_model_searchr, test_input, test_target)
 
-    #    # Filters only have partial info of observation model
+    #    # filters only have partial info of observation model
     #    sys_model_partialh_searchr = SystemModel(f, q[index], hInacc, rsearch[searchindex], T, T_test, m, n,"Lor")
     #    sys_model_partialh_searchr.InitSequence(m1x_0, m2x_0)
     #    print("Evaluate EKF Partial")
@@ -296,7 +296,7 @@ for index in range(0, len(r)):
 
     # Save results
 
-    FilterfolderName = "Filters/main_lorenz_Lor_path_model_results" + "/"
+    FilterfolderName = "filters/main_lorenz_Lor_path_model_results" + "/"
     torch.save(
         {
             "MSE_EKF_linear_arr": MSE_EKF_linear_arr,
@@ -340,32 +340,32 @@ for index in range(0, len(r)):
     )
 
 #####################
-### Evaluate KNet ###
+### Evaluate k_net ###
 #####################
-### KNet without model mismatch
+### k_net without model mismatch
 # sys_model = SystemModel(f, q[0], h, r[0], T, T_test, m, n,"Lor")# arbitary q and r
 # sys_model.InitSequence(m1x_0, m2x_0)
-# print("KNet with full model info")
-# modelFolder = 'KNet' + '/'
-# KNet_Pipeline = Pipeline_EKF(strTime, "KNet", "KalmanNet")
+# print("k_net with full model info")
+# modelFolder = 'k_net' + '/'
+# KNet_Pipeline = Pipeline_EKF(strTime, "k_net", "KalmanNet")
 # KNet_Pipeline.setssModel(sys_model)
 # KNet_model = KalmanNetNN()
 # KNet_model.Build(sys_model)
 # KNet_Pipeline.setModel(KNet_model)
 # KNet_Pipeline.setTrainingParams(n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4)
 
-# KNet_Pipeline.model = torch.load(modelFolder+"model_KalmanNet.pt")
+# KNet_Pipeline.model = torch.load(modelFolder+"model_kalman_net.pt")
 
 # KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
 # [KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
 # KNet_Pipeline.save()
 
-### KNet with model mismatch
-# print("KNet with model mismatch")
+### k_net with model mismatch
+# print("k_net with model mismatch")
 # sys_model_partialh = SystemModel(f, q[0], hInacc, r[0], T, T_test, m, n,"Lor")# arbitary q and r
 # sys_model_partialh.InitSequence(m1x_0, m2x_0)
-# modelFolder = 'KNet' + '/'
-# KNet_Pipeline = Pipeline_EKF(strTime, "KNet", "KNet")
+# modelFolder = 'k_net' + '/'
+# KNet_Pipeline = Pipeline_EKF(strTime, "k_net", "k_net")
 # KNet_Pipeline.setssModel(sys_model_partialh)
 # KNet_model = KalmanNetNN()
 # KNet_model.Build(sys_model_partialh)
@@ -379,7 +379,7 @@ for index in range(0, len(r)):
 # KNet_Pipeline.save()
 
 # # Save trajectories
-# # trajfolderName = 'KNet' + '/'
+# # trajfolderName = 'k_net' + '/'
 # # DataResultName = traj_resultName[0] #[rindex]
 # # # EKF_sample = torch.reshape(EKF_out[0,:,:],[1,m,T_test])
 # # # EKF_Partial_sample = torch.reshape(EKF_out_partial[0,:,:],[1,m,T_test])
@@ -387,11 +387,11 @@ for index in range(0, len(r)):
 # # # input_sample = torch.reshape(test_input[0,:,:],[1,n,T_test])
 # # # KNet_sample = torch.reshape(KNet_test[0,:,:],[1,m,T_test])
 # # torch.save({
-# #             'KNet': KNet_test,
+# #             'k_net': KNet_test,
 # #             }, trajfolderName+DataResultName)
 
 # ## Save histogram
-# EKFfolderName = 'KNet' + '/'
+# EKFfolderName = 'k_net' + '/'
 # torch.save({'MSE_EKF_linear_arr': MSE_EKF_linear_arr,
 #             'MSE_EKF_dB_avg': MSE_EKF_dB_avg,
 #             'MSE_EKF_linear_arr_partial': MSE_EKF_linear_arr_partial,

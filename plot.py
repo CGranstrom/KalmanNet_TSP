@@ -20,7 +20,7 @@ else:
     print("Running on the CPU")
 
 # Legend
-Klegend = ["KNet - Train", "KNet - Validation", "KNet - Test", "Kalman Filter"]
+Klegend = ["k_net - Train", "k_net - Validation", "k_net - Test", "Kalman Filter"]
 RTSlegend = [
     "RTSNet - Train",
     "RTSNet - Validation",
@@ -199,7 +199,7 @@ class Plot:
 
         x_plt = range(0, N_Epochs_plt)
 
-        # KNet - Test
+        # k_net - Test
         y_plt3 = MSE_test_linear_avg * torch.ones(N_Epochs_plt)
         plt.plot(x_plt, y_plt3, KColor[2], label=Klegend[2])
 
@@ -220,7 +220,7 @@ class Plot:
 
         x_plt = range(0, N_Epochs_plt)
 
-        # KNet - Test
+        # k_net - Test
         y_plt3 = MSE_test_dB_avg * torch.ones(N_Epochs_plt)
         plt.plot(x_plt, y_plt3, KColor[2], label=Klegend[2])
 
@@ -235,7 +235,7 @@ class Plot:
         plt.savefig("plt_model_test_dB")
 
         ########################
-        ### Linear Histogram ###
+        ### linear Histogram ###
         ########################
         plt.figure(figsize=(50, 20))
         sns.distplot(
@@ -254,7 +254,7 @@ class Plot:
             color="b",
             label="Kalman Filter",
         )
-        plt.title("Histogram [Linear]")
+        plt.title("Histogram [linear]")
         plt.savefig("plt_hist_linear")
 
         fig, axes = plt.subplots(2, 1, figsize=(50, 20), sharey=True, dpi=100)
@@ -276,7 +276,7 @@ class Plot:
             label="Kalman Filter",
             ax=axes[1],
         )
-        plt.title("Histogram [Linear]")
+        plt.title("Histogram [linear]")
         plt.savefig("plt_hist_linear_1")
 
         ####################
@@ -883,13 +883,13 @@ class Plot_extended(Plot_RTS):
         # x_axis
         x_plt = range(0, N_Epochs_plt)
 
-        # Train KNet and RTSNet
+        # Train k_net and RTSNet
         # y_plt1 = MSE_KNet_train_dB_epoch[np.linspace(0,BatchSize*(N_Epochs_plt-1) ,N_Epochs_plt)]
         # plt.plot(x_plt, y_plt1, KColor[0], label=Klegend[0])
         # y_plt2 = MSE_RTSNet_train_dB_epoch[np.linspace(0,BatchSize*(N_Epochs_plt-1) ,N_Epochs_plt)]
         # plt.plot(x_plt, y_plt2, color=RTSColor[0],linestyle='-', marker='o', label=ERTSlegend[0])
 
-        # CV KNet and RTSNet
+        # CV k_net and RTSNet
         y_plt3 = MSE_KNet_cv_dB_epoch[
             np.linspace(0, BatchSize * (N_Epochs_plt - 1), N_Epochs_plt)
         ]
@@ -913,7 +913,7 @@ class Plot_extended(Plot_RTS):
             label=ERTSlegend[1],
         )
 
-        # Test KNet and RTSNet
+        # Test k_net and RTSNet
         y_plt5 = MSE_KNet_test_dB_avg * torch.ones(N_Epochs_plt)
         plt.plot(x_plt, y_plt5, color=RTSColor[0], linestyle="--", label=Klegend[2])
         y_plt6 = MSE_RTSNet_test_dB_avg * torch.ones(N_Epochs_plt)
@@ -1277,7 +1277,7 @@ class Plot_extended(Plot_RTS):
             "--bo",
             linewidth=3,
             markersize=12,
-            label=r"KNet: $\Delta{\theta}=1$",
+            label=r"k_net: $\Delta{\theta}=1$",
         )
         main_partial.plot(
             x_plt,

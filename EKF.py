@@ -1,5 +1,5 @@
 """# **Class: Extended Kalman Filter**
-Theoretical Non Linear Kalman
+Theoretical Non linear Kalman
 """
 import torch
 
