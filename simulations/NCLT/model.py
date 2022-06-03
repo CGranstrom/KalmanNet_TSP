@@ -1,9 +1,8 @@
 # import autograd.numpy as np
-from autograd import grad, jacobian
 import torch
-from torch import autograd
-
+from autograd import grad, jacobian
 from parameters import F_design, H_design
+from torch import autograd
 
 if torch.cuda.is_available():
     cuda0 = torch.device(

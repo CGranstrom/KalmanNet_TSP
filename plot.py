@@ -1,14 +1,14 @@
-import torch
 import matplotlib as mpl
+import torch
 
 mpl.rcParams["agg.path.chunksize"] = 1e4
-import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-import seaborn as sns
+import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset
-from scipy.signal import find_peaks
+import seaborn as sns
+from mpl_toolkits.axes_grid1.inset_locator import mark_inset, zoomed_inset_axes
 from mpl_toolkits.mplot3d import Axes3D
+from scipy.signal import find_peaks
 
 if torch.cuda.is_available():
     cuda0 = torch.device(

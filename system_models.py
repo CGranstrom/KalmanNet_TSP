@@ -1,13 +1,13 @@
+import sys
+
 import torch
 from torch.distributions import MultivariateNormal
 from torch.distributions.multivariate_normal import MultivariateNormal
 
-from filing_paths import path_model
-import sys
+from path_models import path_model
 
 sys.path.insert(1, path_model)
 from parameters import delta_t, delta_t_gen, variance
-
 
 _model_param_name_map = {"pendulum": delta_t, "pendulum_gen": delta_t_gen}
 

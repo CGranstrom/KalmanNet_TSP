@@ -1,7 +1,8 @@
-import torch
-import torch.nn as nn
 import random
 import time
+
+import torch
+import torch.nn as nn
 
 from kalman_net import KalmanNetNN
 from plot import Plot

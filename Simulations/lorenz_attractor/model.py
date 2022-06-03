@@ -1,31 +1,18 @@
 import math
+
 import torch
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
-from torch import autograd
-from filing_paths import path_model
 import sys
 
+from torch import autograd
+
+from path_models import path_model
+
 sys.path.insert(1, path_model)
-from parameters import (
-    m,
-    n,
-    J,
-    delta_t,
-    delta_t_test,
-    delta_t_gen,
-    H_design,
-    B,
-    C,
-    B_mod,
-    C_mod,
-    delta_t_mod,
-    J_mod,
-    H_mod,
-    H_design_inv,
-    H_mod_inv,
-    RotMatrix,
-)
+from parameters import (B, B_mod, C, C_mod, H_design, H_design_inv, H_mod,
+                        H_mod_inv, J, J_mod, RotMatrix, delta_t, delta_t_gen,
+                        delta_t_mod, delta_t_test, m, n)
 
 if torch.cuda.is_available():
     dev = torch.device(

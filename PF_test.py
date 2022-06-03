@@ -1,10 +1,11 @@
+import time
+
+import numpy as np
 import pyparticleest.models.nlg
 import pyparticleest.simulator as simulator
 import pyparticleest.utils.kalman as kalman
-import time
 import torch
 import torch.nn as nn
-import numpy as np
 
 
 class Model(pyparticleest.models.nlg.NonlinearGaussianInitialGaussian):

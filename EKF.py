@@ -1,11 +1,11 @@
 """# **Class: Extended Kalman Filter**
 Theoretical Non linear Kalman
 """
+import sys
+
 import torch
 
-from filing_paths import path_model
-
-import sys
+from path_models import path_model
 
 sys.path.insert(1, path_model)
 print(sys.path)

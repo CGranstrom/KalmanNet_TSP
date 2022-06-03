@@ -1,31 +1,25 @@
 import torch
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
-import torch.nn as nn
-from system_models import ExtendedSystemModel
-from extended_data import (
-    DataGen,
-    DataLoader,
-    DataLoader_GPU,
-    Decimate_and_perturbate_Data,
-    Short_Traj_Split,
-)
-from extended_data import N_E, N_CV, N_T
-from pipeline_KF import Pipeline_KF
-from kalman_net import KalmanNetNN
+import sys
 from datetime import datetime
 
-from EKF_test import EKFTest
-from UKF_test import UKFTest
-from PF_test import PFTest
-from plot import Plot_RTS as Plot
+import torch.nn as nn
 
-from filing_paths import path_model
-import sys
+from EKF_test import EKFTest
+from extended_data import (N_CV, N_E, N_T, DataGen, DataLoader, DataLoader_GPU,
+                           Decimate_and_perturbate_Data, Short_Traj_Split)
+from kalman_net import KalmanNetNN
+from path_models import path_model
+from PF_test import PFTest
+from pipeline_KF import Pipeline_KF
+from plot import Plot_RTS as Plot
+from system_models import ExtendedSystemModel
+from UKF_test import UKFTest
 
 sys.path.insert(1, path_model)
-from parameters import T, T_test, m1x_0, m2x_0, m, n
-from model import f, h, fInacc
+from model import f, fInacc, h
+from parameters import T, T_test, m, m1x_0, m2x_0, n
 
 if torch.cuda.is_available():
     dev = torch.device(

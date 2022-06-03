@@ -1,12 +1,12 @@
 """# **Class: KalmanNet**"""
 
+import sys
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as func
 
-from filing_paths import path_model
-
-import sys
+from path_models import path_model
 
 sys.path.insert(1, path_model)
 from model import getJacobian

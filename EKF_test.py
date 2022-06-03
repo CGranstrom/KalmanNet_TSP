@@ -1,6 +1,8 @@
-import torch.nn as nn
-import torch
 import time
+
+import torch
+import torch.nn as nn
+
 from EKF import ExtendedKalmanFilter
 
 

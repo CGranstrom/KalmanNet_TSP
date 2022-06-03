@@ -1,5 +1,6 @@
-import torch
 import math
+
+import torch
 
 if torch.cuda.is_available():
     cuda0 = torch.device(

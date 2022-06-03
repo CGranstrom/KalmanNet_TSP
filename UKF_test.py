@@ -1,12 +1,9 @@
-import torch.nn as nn
-import torch
 import time
 
-from filterpy.kalman import (
-    UnscentedKalmanFilter,
-    MerweScaledSigmaPoints,
-    JulierSigmaPoints,
-)
+import torch
+import torch.nn as nn
+from filterpy.kalman import (JulierSigmaPoints, MerweScaledSigmaPoints,
+                             UnscentedKalmanFilter)
 
 
 def UKFTest(

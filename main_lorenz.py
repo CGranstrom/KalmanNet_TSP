@@ -1,35 +1,25 @@
 import torch
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
+import sys
+from datetime import datetime
+
 import torch.nn as nn
 
 from EKF_test import EKFTest
-from UKF_test import UKFTest
-from PF_test import PFTest
-
-from system_models import ExtendedSystemModel
-from extended_data import (
-    DataGen,
-    DataLoader,
-    DataLoader_GPU,
-    Decimate_and_perturbate_Data,
-    Short_Traj_Split,
-)
-from extended_data import N_E, N_CV, N_T
-from pipeline_EKF import Pipeline_EKF
-
+from extended_data import (N_CV, N_E, N_T, DataGen, DataLoader, DataLoader_GPU,
+                           Decimate_and_perturbate_Data, Short_Traj_Split)
 from extended_kalman_net import KalmanNetNN
-
-from datetime import datetime
-
+from path_models import path_model
+from PF_test import PFTest
+from pipeline_EKF import Pipeline_EKF
 from plot import Plot_extended as Plot
-
-from filing_paths import path_model
-import sys
+from system_models import ExtendedSystemModel
+from UKF_test import UKFTest
 
 sys.path.insert(1, path_model)
-from parameters import T, T_test, m1x_0, m2x_0, m, n  # ,delta_t_gen,delta_t
-from model import f, h, fInacc, hInacc  # , fRotate, h_nonlinear
+from model import f, fInacc, h, hInacc  # , fRotate, h_nonlinear
+from parameters import T, T_test, m, m1x_0, m2x_0, n  # ,delta_t_gen,delta_t
 
 if torch.cuda.is_available():
     dev = torch.device(
@@ -40,7 +30,6 @@ if torch.cuda.is_available():
 else:
     dev = torch.device("cpu")
     print("Running on the CPU")
-
 
 print("Pipeline Start")
 

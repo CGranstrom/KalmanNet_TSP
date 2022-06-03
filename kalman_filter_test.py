@@ -1,8 +1,10 @@
+import time
+
 import torch
 import torch.nn as nn
-import time
-from linear_kalman_filter import KalmanFilter
+
 from extended_data import N_T
+from linear_kalman_filter import KalmanFilter
 
 
 def KFTest(SysModel, test_input, test_target):
