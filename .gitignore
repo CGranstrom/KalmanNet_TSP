@@ -1,0 +1,13 @@
+# user-specific stuff
+.idea/
+
+# environments
+.env
+.pyenv
+.venv
+my_environment.yml
+
+# etc.
+__pycache__
+*/__pycache__/
+
