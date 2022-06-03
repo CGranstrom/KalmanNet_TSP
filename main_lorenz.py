@@ -7,7 +7,7 @@ from EKF_test import EKFTest
 from UKF_test import UKFTest
 from PF_test import PFTest
 
-from extended_system_model import ExtendedSystemModel
+from system_models import ExtendedSystemModel
 from extended_data import (
     DataGen,
     DataLoader,

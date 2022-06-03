@@ -2,7 +2,7 @@ import torch
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
 import torch.nn as nn
-from extended_system_model import ExtendedSystemModel
+from system_models import ExtendedSystemModel
 from extended_data import (
     DataGen,
     DataLoader,
