@@ -2,7 +2,7 @@ import torch
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
 import torch.nn as nn
-from linear_system_model import SystemModel
+from linear_system_model import LinearSystemModel
 from extended_data import (
     DataGen,
     DataLoader,
@@ -52,7 +52,7 @@ print("Pipeline Start")
 today = datetime.today()
 now = datetime.now()
 strToday = today.strftime("%m.%d.%y")
-strNow = now.strftime("%H:%M:%S")
+strNow = now.strftime("%h:%M:%S")
 strTime = strToday + "_" + strNow
 print("Current Time =", strTime)
 path_results = "RTSNet/"
@@ -73,12 +73,12 @@ for index in range(0, len(r2)):
     # True model
     r = torch.sqrt(r2[index])
     q = torch.sqrt(q2[index])
-    sys_model = SystemModel(F, q, H_rotated, r, T, T_test)
-    sys_model.InitSequence(m1_0, m2_0)
+    sys_model = LinearSystemModel(F, q, H_rotated, r, T, T_test)
+    sys_model.init_sequence(m1_0, m2_0)
 
     # Mismatched model
-    sys_model_partialh = SystemModel(F, q, H, r, T, T_test)
-    sys_model_partialh.InitSequence(m1_0, m2_0)
+    sys_model_partialh = LinearSystemModel(F, q, H, r, T, T_test)
+    sys_model_partialh.init_sequence(m1_0, m2_0)
 
     ###################################
     ### Data Loader (Generate Data) ###
@@ -180,11 +180,11 @@ for index in range(0, len(r2)):
     ] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
     KNet_Pipeline.save()
 
-    print("k_net with estimated H")
+    print("k_net with estimated h")
     modelFolder = "k_net" + "/"
     KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KNetEstH_" + dataFileName[index])
-    print("True Observation matrix H:", H_rotated)
-    ### Least square estimation of H
+    print("True Observation matrix h:", H_rotated)
+    ### Least square estimation of h
     X = torch.squeeze(train_target[:, :, 0]).to(dev, non_blocking=True)
     Y = torch.squeeze(train_input[:, :, 0]).to(dev, non_blocking=True)
     for t in range(1, T):
@@ -200,12 +200,12 @@ for index in range(0, len(r2)):
     H_row2 = torch.matmul(
         torch.matmul(torch.inverse(torch.matmul(X.T, X)), X.T), Y_2
     ).to(dev, non_blocking=True)
-    H_hat = torch.cat((H_row1.T, H_row2.T), 0)
-    print("Estimated Observation matrix H:", H_hat)
+    H_hat = torch.cat((H_row1.t, H_row2.t), 0)
+    print("Estimated Observation matrix h:", H_hat)
 
     # Estimated model
-    sys_model_esth = SystemModel(F, q, H_hat, r, T, T_test)
-    sys_model_esth.InitSequence(m1_0, m2_0)
+    sys_model_esth = LinearSystemModel(F, q, H_hat, r, T, T_test)
+    sys_model_esth.init_sequence(m1_0, m2_0)
 
     KNet_Pipeline.setssModel(sys_model_esth)
     KNet_model = KalmanNetNN()

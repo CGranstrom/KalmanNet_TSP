@@ -4,6 +4,8 @@ from torch.distributions.multivariate_normal import MultivariateNormal
 from filing_paths import path_model
 import sys
 
+from linear_system_model import LinearSystemModel
+
 sys.path.insert(1, path_model)
 from parameters import delta_t, delta_t_gen, variance
 
@@ -18,21 +20,17 @@ else:
     print("Running on the CPU")
 
 
-class SystemModel:
-    def __init__(self, f, q, h, r, T, T_test, m, n, modelname):
+class ExtendedSystemModel(LinearSystemModel):
+    def __init__(self, f, q, h, r, t, t_test, m, n, model_name):
+        super().__init__(f, q, h, r, t, t_test)
 
-        ####################
-        ### Motion Model ###
-        ####################
-        self.modelname = modelname
+        # motion model
+        self.model_name = model_name
 
-        self.f = f
         self.m = m
 
-        self.q = q
-
         self.delta_t = delta_t
-        if self.modelname == "pendulum":
+        if self.model_name == "pendulum":
             self.Q = (
                 q
                 * q
@@ -43,7 +41,7 @@ class SystemModel:
                     ]
                 )
             )
-        elif self.modelname == "pendulum_gen":
+        elif self.model_name == "pendulum_gen":
             self.Q = (
                 q
                 * q
@@ -57,67 +55,34 @@ class SystemModel:
         else:
             self.Q = q * q * torch.eye(self.m)
 
-        #########################
-        ### Observation Model ###
-        #########################
-        self.h = h
+        # observation model
         self.n = n
 
-        self.r = r
-        self.R = r * r * torch.eye(self.n)
+    def init_sequence(self, m1x_0, m2x_0):
 
-        # Assign T and T_test
-        self.T = T
-        self.T_test = T_test
+        super().init_sequence(
+            m1x_0=torch.squeeze(m1x_0).to(cuda0), m2x_0=torch.squeeze(m2x_0).to(cuda0)
+        )
 
-    #####################
-    ### Init Sequence ###
-    #####################
-    def InitSequence(self, m1x_0, m2x_0):
+    def _generate_sequence(self, Q_gen, R_gen, T):
 
-        self.m1x_0 = torch.squeeze(m1x_0).to(cuda0)
-        self.m2x_0 = torch.squeeze(m2x_0).to(cuda0)
-
-    #########################
-    ### Update Covariance ###
-    #########################
-    def UpdateCovariance_Gain(self, q, r):
-
-        self.q = q
-        self.Q = q * q * torch.eye(self.m)
-
-        self.r = r
-        self.R = r * r * torch.eye(self.n)
-
-    def UpdateCovariance_Matrix(self, Q, R):
-
-        self.Q = Q
-
-        self.R = R
-
-    #########################
-    ### Generate Sequence ###
-    #########################
-    def GenerateSequence(self, Q_gen, R_gen, T):
-        # Pre allocate an array for current state
+        # pre-allocate an array for current state
         self.x = torch.empty(size=[self.m, T])
-        # Pre allocate an array for current observation
+        # pre-allocate an array for current observation
         self.y = torch.empty(size=[self.n, T])
-        # Set x0 to be x previous
+        # set x0 to be x previous
         self.x_prev = self.m1x_0
 
-        # Generate Sequence Iteratively
+        # generate sequence iteratively
         for t in range(0, T):
-            ########################
-            #### State Evolution ###
-            ########################
-            # Process Noise
+            # state evolution
+            # process noise
             if self.q == 0:
                 xt = self.f(self.x_prev)
             else:
                 xt = self.f(self.x_prev)
                 mean = torch.zeros([self.m])
-                if self.modelname == "pendulum":
+                if self.model_name == "pendulum":
                     distrib = MultivariateNormal(loc=mean, covariance_matrix=Q_gen)
                     eq = distrib.rsample()
                 else:
@@ -126,59 +91,24 @@ class SystemModel:
                 # Additive Process Noise
                 xt = torch.add(xt, eq)
 
-            ################
-            ### Emission ###
-            ################
+            # emission
             yt = self.h(xt)
 
-            # Observation Noise
+            # observation noise
             mean = torch.zeros([self.n])
             er = torch.normal(mean, self.r)
             # er = np.random.multivariate_normal(mean, R_gen, 1)
             # er = torch.transpose(torch.tensor(er), 0, 1)
 
-            # Additive Observation Noise
+            # additive observation noise
             yt = torch.add(yt, er)
 
-            ########################
-            ### Squeeze to Array ###
-            ########################
-
-            # Save Current State to Trajectory Array
+            # squeeze to array
+            # save current state to trajectory array
             self.x[:, t] = torch.squeeze(xt)
 
-            # Save Current Observation to Trajectory Array
+            # save current observation to trajectory array
             self.y[:, t] = torch.squeeze(yt)
 
-            ################################
-            ### Save Current to Previous ###
-            ################################
+            # save current to previous
             self.x_prev = xt
-
-    ######################
-    ### Generate Batch ###
-    ######################
-    def GenerateBatch(self, size, T, randomInit=False):
-
-        # Allocate Empty Array for Input
-        self.Input = torch.empty(size, self.n, T)
-
-        # Allocate Empty Array for Target
-        self.Target = torch.empty(size, self.m, T)
-
-        initConditions = self.m1x_0
-
-        ### Generate Examples
-        for i in range(0, size):
-            # Generate Sequence
-            # Randomize initial conditions to get a rich dataset
-            if randomInit:
-                initConditions = torch.rand_like(self.m1x_0) * variance
-            self.InitSequence(initConditions, self.m2x_0)
-            self.GenerateSequence(self.Q, self.R, T)
-
-            # Training sequence input
-            self.Input[i, :, :] = self.y
-
-            # Training sequence output
-            self.Target[i, :, :] = self.x

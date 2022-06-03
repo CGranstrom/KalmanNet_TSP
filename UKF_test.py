@@ -49,7 +49,7 @@ def UKFTest(
     UKF.R = SysModel.R.cpu().numpy()
     UKF.Q = SysModel.Q.cpu().numpy()
 
-    UKF_out = torch.empty([N_T, SysModel.m, SysModel.T_test])
+    UKF_out = torch.empty([N_T, SysModel.m, SysModel.t_test])
 
     start = time.time()
     sub_time = 0
@@ -61,7 +61,7 @@ def UKFTest(
         print(
             f"On step {j}, {j/N_T*100}% done, {N_T-j} steps remain. Previous step took {sub_time} seconds."
         )
-        for z in range(0, SysModel.T_test):
+        for z in range(0, SysModel.t_test):
             UKF.predict()
             UKF.update(test_input[j, :, z].cpu().numpy())
             UKF_out[j, :, z] = torch.from_numpy(UKF.x)

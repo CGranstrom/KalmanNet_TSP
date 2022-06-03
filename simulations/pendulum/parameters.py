@@ -35,7 +35,7 @@ ratio = delta_t_gen / delta_t
 T = 30
 T_test = 3000
 T_gen = math.ceil(T_test / ratio)
-# T_test_gen = math.ceil(T_test / ratio)
+# T_test_gen = math.ceil(t_test / ratio)
 
 H_design = torch.eye(m)
 
@@ -84,7 +84,7 @@ T_test_mod = math.ceil(T_test * ratio)
 #### Model Parameters For pendulum ####
 #######################################
 
-## Rotated Observation H
+## Rotated Observation h
 alpha_degree = 1
 rotate_alpha = torch.tensor([alpha_degree / 180 * math.pi]).to(cuda0)
 cos_alpha = torch.cos(rotate_alpha)
@@ -93,7 +93,7 @@ rotate_matrix = torch.tensor([[cos_alpha, -sin_alpha], [sin_alpha, cos_alpha]]).
     cuda0
 )
 # print(rotate_matrix)
-# F_rotated = torch.mm(F,rotate_matrix) #inaccurate process model
+# F_rotated = torch.mm(f,rotate_matrix) #inaccurate process model
 H_mod = torch.mm(H_design, rotate_matrix)  # inaccurate observation model
 # H_mod = torch.eye(n)
 # H_mod = H_design

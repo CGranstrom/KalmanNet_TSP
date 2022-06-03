@@ -15,20 +15,20 @@ else:
 
 class KalmanFilter:
     def __init__(self, SystemModel):
-        self.F = SystemModel.F
+        self.F = SystemModel.f
         self.F_T = torch.transpose(self.F, 0, 1)
         self.m = SystemModel.m
 
         self.Q = SystemModel.Q
 
-        self.H = SystemModel.H
+        self.H = SystemModel.h
         self.H_T = torch.transpose(self.H, 0, 1)
         self.n = SystemModel.n
 
         self.R = SystemModel.R
 
-        self.T = SystemModel.T
-        self.T_test = SystemModel.T_test
+        self.T = SystemModel.t
+        self.T_test = SystemModel.t_test
 
     # Predict
 

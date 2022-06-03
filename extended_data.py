@@ -79,8 +79,8 @@ m2_0 = 0 * 0 * torch.eye(m).to(dev)
 #############
 # m = 5
 # n = 5
-# F = F10[0:m, 0:m]
-# H = H10[0:n, 10-m:10]
+# f = F10[0:m, 0:m]
+# h = H10[0:n, 10-m:10]
 # m1_0 = torch.zeros(m, 1).to(dev)
 # # m1x_0_design = torch.tensor([[1.0], [-1.0], [2.0], [-2.0], [0.0]]).to(dev)
 # m2_0 = 0 * 0 * torch.eye(m).to(dev)
@@ -90,8 +90,8 @@ m2_0 = 0 * 0 * torch.eye(m).to(dev)
 ##############
 # m = 10
 # n = 10
-# F = F10[0:m, 0:m]
-# H = H10
+# f = F10[0:m, 0:m]
+# h = H10
 # m1_0 = torch.zeros(m, 1).to(dev)
 # # m1x_0_design = torch.tensor([[10.0], [-10.0]])
 # m2_0 = 0 * 0 * torch.eye(m).to(dev)
@@ -109,9 +109,9 @@ H_rotated = torch.mm(H, rotate_matrix)  # inaccurate observation model
 
 def DataGen_True(SysModel_data, fileName, T):
 
-    SysModel_data.GenerateBatch(1, T, randomInit=False)
-    test_input = SysModel_data.Input
-    test_target = SysModel_data.Target
+    SysModel_data.generate_batch(1, T, random_init=False)
+    test_input = SysModel_data.input
+    test_target = SysModel_data.target
 
     # torch.save({"True Traj":[test_target],
     #             "Obs":[test_input]},fileName)
@@ -123,23 +123,23 @@ def DataGen(SysModel_data, fileName, T, T_test, randomInit=False):
     ##################################
     ### Generate Training Sequence ###
     ##################################
-    SysModel_data.GenerateBatch(N_E, T, randomInit=randomInit)
-    training_input = SysModel_data.Input
-    training_target = SysModel_data.Target
+    SysModel_data.generate_batch(N_E, T, random_init=randomInit)
+    training_input = SysModel_data.input
+    training_target = SysModel_data.target
 
     ####################################
     ### Generate Validation Sequence ###
     ####################################
-    SysModel_data.GenerateBatch(N_CV, T, randomInit=randomInit)
-    cv_input = SysModel_data.Input
-    cv_target = SysModel_data.Target
+    SysModel_data.generate_batch(N_CV, T, random_init=randomInit)
+    cv_input = SysModel_data.input
+    cv_target = SysModel_data.target
 
     ##############################
     ### Generate Test Sequence ###
     ##############################
-    SysModel_data.GenerateBatch(N_T, T_test, randomInit=randomInit)
-    test_input = SysModel_data.Input
-    test_target = SysModel_data.Target
+    SysModel_data.generate_batch(N_T, T_test, random_init=randomInit)
+    test_input = SysModel_data.input
+    test_target = SysModel_data.target
 
     #################
     ### Save Data ###

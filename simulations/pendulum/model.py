@@ -55,12 +55,12 @@ def hInacc(x):
 def getJacobian(x, a):
 
     # if(x.size()[1] == 1):
-    #     y = torch.reshape((x.T),[x.size()[0]])
+    #     y = torch.reshape((x.t),[x.size()[0]])
     try:
         if x.size()[1] == 1:
-            y = torch.reshape((x.T), [x.size()[0]])
+            y = torch.reshape((x.t), [x.size()[0]])
     except:
-        y = torch.reshape((x.T), [x.size()[0]])
+        y = torch.reshape((x.t), [x.size()[0]])
 
     if a == "ObsAcc":
         g = h
@@ -87,11 +87,11 @@ def getJacobian(x, a):
 
 """
 x = torch.tensor([[1],[1],[1]]).float() 
-H = getJacobian(x, 'ObsAcc')
-print(H)
+h = getJacobian(x, 'ObsAcc')
+print(h)
 print(h(x))
 
-F = getJacobian(x, 'ModAcc')
-print(F)
+f = getJacobian(x, 'ModAcc')
+print(f)
 print(f(x))
 """

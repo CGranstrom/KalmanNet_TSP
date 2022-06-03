@@ -39,10 +39,10 @@ else:
 
 def f_test(x):
 
-    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).T,C)
+    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).t,C)
     A = torch.add(torch.reshape(torch.matmul(B, x), (m, m)).T, C)
 
-    # Taylor Expansion for F
+    # Taylor Expansion for f
     F = torch.eye(m)
     for j in range(1, J + 1):
         F_add = (torch.matrix_power(A * delta_t_test, j) / math.factorial(j)).to(dev)
@@ -53,10 +53,10 @@ def f_test(x):
 
 def f_gen(x):
 
-    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).T,C)
+    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).t,C)
     A = torch.add(torch.reshape(torch.matmul(B, x), (m, m)).T, C)
 
-    # Taylor Expansion for F
+    # Taylor Expansion for f
     F = torch.eye(m)
     for j in range(1, J + 1):
         F_add = (torch.matrix_power(A * delta_t_gen, j) / math.factorial(j)).to(dev)
@@ -67,10 +67,10 @@ def f_gen(x):
 
 def f(x):
 
-    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).T,C)
+    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).t,C)
     A = (torch.add(torch.reshape(torch.matmul(B, x.to(dev)), (m, m)).T, C)).to(dev)
 
-    # Taylor Expansion for F
+    # Taylor Expansion for f
     F = torch.eye(m)
     for j in range(1, J + 1):
         F_add = (torch.matrix_power(A * delta_t, j) / math.factorial(j)).to(dev)
@@ -86,10 +86,10 @@ def h(x):
 
 def fInacc(x):
 
-    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).T,C)
+    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).t,C)
     A = torch.add(torch.reshape(torch.matmul(B_mod, x.to(dev)), (m, m)).T, C_mod)
 
-    # Taylor Expansion for F
+    # Taylor Expansion for f
     F = torch.eye(m)
     for j in range(1, J_mod + 1):
         F_add = (torch.matrix_power(A * delta_t_mod, j) / math.factorial(j)).to(dev)
@@ -101,7 +101,7 @@ def fInacc(x):
 def fRotate(x):
     A = (torch.add(torch.reshape(torch.matmul(B, x), (m, m)).T, C)).to(dev)
     A_rot = torch.mm(RotMatrix, A)
-    # Taylor Expansion for F
+    # Taylor Expansion for f
     F = torch.eye(m)
     for j in range(1, J + 1):
         F_add = (torch.matrix_power(A_rot * delta_t, j) / math.factorial(j)).to(dev)
@@ -122,12 +122,12 @@ def h_nonlinear(x):
 def getJacobian(x, a):
 
     # if(x.size()[1] == 1):
-    #     y = torch.reshape((x.T),[x.size()[0]])
+    #     y = torch.reshape((x.t),[x.size()[0]])
     try:
         if x.size()[1] == 1:
-            y = torch.reshape((x.T), [x.size()[0]])
+            y = torch.reshape((x.t), [x.size()[0]])
     except:
-        y = torch.reshape((x.T), [x.size()[0]])
+        y = torch.reshape((x.t), [x.size()[0]])
 
     if a == "ObsAcc":
         g = h
@@ -183,11 +183,11 @@ def hInaccInv(y):
 
 """
 x = torch.tensor([[1],[1],[1]]).float() 
-H = getJacobian(x, 'ObsAcc')
-print(H)
+h = getJacobian(x, 'ObsAcc')
+print(h)
 print(h(x))
 
-F = getJacobian(x, 'ModAcc')
-print(F)
+f = getJacobian(x, 'ModAcc')
+print(f)
 print(f(x))
 """

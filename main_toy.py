@@ -2,7 +2,7 @@ import torch
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
 import torch.nn as nn
-from extended_system_model import SystemModel
+from extended_system_model import ExtendedSystemModel
 from extended_data import (
     DataGen,
     DataLoader,
@@ -46,7 +46,7 @@ print("Pipeline Start")
 today = datetime.today()
 now = datetime.now()
 strToday = today.strftime("%m.%d.%y")
-strNow = now.strftime("%H:%M:%S")
+strNow = now.strftime("%h:%M:%S")
 strTime = strToday + "_" + strNow
 print("Current Time =", strTime)
 path_results = "RTSNet/"
@@ -70,12 +70,12 @@ for index in range(0, len(r2)):
     # True model
     r = torch.sqrt(r2[index])
     q = torch.sqrt(q2[index])
-    sys_model = SystemModel(f, q, h, r, T, T_test, m, n, "Toy")
-    sys_model.InitSequence(m1x_0, m2x_0)
+    sys_model = ExtendedSystemModel(f, q, h, r, T, T_test, m, n, "Toy")
+    sys_model.init_sequence(m1x_0, m2x_0)
 
     # Mismatched model
-    sys_model_partial = SystemModel(fInacc, q, h, r, T, T_test, m, n, "Toy")
-    sys_model_partial.InitSequence(m1x_0, m2x_0)
+    sys_model_partial = ExtendedSystemModel(fInacc, q, h, r, T, T_test, m, n, "Toy")
+    sys_model_partial.init_sequence(m1x_0, m2x_0)
 
     ###################################
     ### Data Loader (Generate Data) ###
@@ -102,11 +102,13 @@ for index in range(0, len(r2)):
     ################################
 
     print("Searched optimal 1/q2 [dB]: ", 10 * torch.log10(1 / qopt[index] ** 2))
-    sys_model = SystemModel(f, qopt[index], h, r, T, T_test, m, n, "Toy")
-    sys_model.InitSequence(m1x_0, m2x_0)
+    sys_model = ExtendedSystemModel(f, qopt[index], h, r, T, T_test, m, n, "Toy")
+    sys_model.init_sequence(m1x_0, m2x_0)
 
-    sys_model_partial = SystemModel(fInacc, qopt[index], h, r, T, T_test, m, n, "Toy")
-    sys_model_partial.InitSequence(m1x_0, m2x_0)
+    sys_model_partial = ExtendedSystemModel(
+        fInacc, qopt[index], h, r, T, T_test, m, n, "Toy"
+    )
+    sys_model_partial.init_sequence(m1x_0, m2x_0)
     print("Evaluate Kalman Filter True")
     [
         MSE_EKF_linear_arr,

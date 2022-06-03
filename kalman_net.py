@@ -10,9 +10,9 @@ class KalmanNetNN(nn.Module):
         super().__init__()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    def build(self, ss_model: "SystemModel"):
+    def build(self, ss_model: "LinearSystemModel"):
 
-        self._init_system_dynamics(ss_model.F, ss_model.H)
+        self._init_system_dynamics(ss_model.f, ss_model.h)
 
         # number of neurons in the 1st hidden layer
         H1_KNet = (ss_model.m + ss_model.n) * 10 * 8

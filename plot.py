@@ -506,19 +506,19 @@ class Plot_RTS(Plot):
             x_plt,
             MSE_RTS_dB[0, :],
             "-r^",
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{F}_{\alpha=0^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{f}_{\alpha=0^\circ}$)",
         )
         plt.plot(
             x_plt,
             MSE_RTS_dB[1, :],
             "-gx",
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{F}_{\alpha=10^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{f}_{\alpha=10^\circ}$)",
         )
         plt.plot(
             x_plt,
             MSE_RTS_dB[2, :],
             "-bo",
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTSNet ($\mathbf{F}_{\alpha=10^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTSNet ($\mathbf{f}_{\alpha=10^\circ}$)",
         )
 
         plt.legend(fontsize=16)
@@ -545,7 +545,7 @@ class Plot_RTS(Plot):
             "-g^",
             linewidth=2,
             markersize=12,
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB] , 2x2, RTS Smoother ($\mathbf{H}_{\alpha=0^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB] , 2x2, RTS Smoother ($\mathbf{h}_{\alpha=0^\circ}$)",
         )
         main_H.plot(
             x_plt,
@@ -553,7 +553,7 @@ class Plot_RTS(Plot):
             "-yx",
             linewidth=2,
             markersize=12,
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{H}_{\alpha=10^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{h}_{\alpha=10^\circ}$)",
         )
         main_H.plot(
             x_plt,
@@ -561,7 +561,7 @@ class Plot_RTS(Plot):
             "-bo",
             linewidth=2,
             markersize=12,
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTSNet ($\mathbf{H}_{\alpha=10^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTSNet ($\mathbf{h}_{\alpha=10^\circ}$)",
         )
 
         main_H.set(xlim=(x_plt[0], x_plt[len(x_plt) - 1]), ylim=(-20, 15))
@@ -586,7 +586,7 @@ class Plot_RTS(Plot):
             "-g^",
             linewidth=2,
             markersize=12,
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB] , 2x2, RTS Smoother ($\mathbf{H}_{\alpha=0^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB] , 2x2, RTS Smoother ($\mathbf{h}_{\alpha=0^\circ}$)",
         )
         ax2.plot(
             x_plt,
@@ -594,7 +594,7 @@ class Plot_RTS(Plot):
             "-yx",
             linewidth=2,
             markersize=12,
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{H}_{\alpha=10^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{h}_{\alpha=10^\circ}$)",
         )
         ax2.plot(
             x_plt,
@@ -602,7 +602,7 @@ class Plot_RTS(Plot):
             "-bo",
             linewidth=2,
             markersize=12,
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTSNet ($\mathbf{H}_{\alpha=10^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTSNet ($\mathbf{h}_{\alpha=10^\circ}$)",
         )
         ax2.grid(True)
         plt.savefig(fileName)
@@ -616,37 +616,37 @@ class Plot_RTS(Plot):
             x_plt,
             MSE_RTS_dB_F[0, :],
             "-r^",
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{F}_{\alpha=0^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{f}_{\alpha=0^\circ}$)",
         )
         plt.plot(
             x_plt,
             MSE_RTS_dB_F[1, :],
             "-gx",
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{F}_{\alpha=10^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{f}_{\alpha=10^\circ}$)",
         )
         plt.plot(
             x_plt,
             MSE_RTS_dB_F[2, :],
             "-bo",
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTSNet ($\mathbf{F}_{\alpha=10^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTSNet ($\mathbf{f}_{\alpha=10^\circ}$)",
         )
         plt.plot(
             x_plt,
             MSE_RTS_dB_H[0, :],
             "--r^",
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{H}_{\alpha=0^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{h}_{\alpha=0^\circ}$)",
         )
         plt.plot(
             x_plt,
             MSE_RTS_dB_H[1, :],
             "--gx",
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{H}_{\alpha=10^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTS Smoother ($\mathbf{h}_{\alpha=10^\circ}$)",
         )
         plt.plot(
             x_plt,
             MSE_RTS_dB_H[2, :],
             "--bo",
-            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTSNet ($\mathbf{H}_{\alpha=10^\circ}$)",
+            label=r"$\mathrm{\frac{q^2}{r^2}}=0$ [dB], 2x2, RTSNet ($\mathbf{h}_{\alpha=10^\circ}$)",
         )
 
         plt.legend(fontsize=16)

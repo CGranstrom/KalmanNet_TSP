@@ -5,7 +5,7 @@ torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
 import random
 import torch.nn as nn
 from EKF_test import EKFTest
-from extended_system_model import SystemModel
+from extended_system_model import ExtendedSystemModel
 from extended_data import (
     DataGen,
     DataLoader_GPU,
@@ -70,10 +70,10 @@ else:
 # print("data obs noise 1/r2 [dB]: ", 10 * torch.log10(1/r**2))
 # print("data process noise 1/q2 [dB]: ", 10 * torch.log10(1/q_gen**2))
 # #Model
-# sys_model = SystemModel(f, q_gen, h, r, T, T_test, m, n,"Lor")
+# sys_model = LinearSystemModel(f, q_gen, h, r, t, t_test, m, n,"Lor")
 # sys_model.InitSequence(m1x_0, m2x_0)
 # #Generate and load data
-# DataGen(sys_model, DatafolderName + dataFileName, T, T_test)
+# DataGen(sys_model, DatafolderName + dataFileName, t, t_test)
 # print("Data Load")
 # [train_input, train_target, cv_input, cv_target, test_input, test_target] = DataLoader_GPU(DatafolderName + dataFileName)
 # print(test_target.size())
@@ -81,16 +81,16 @@ else:
 # dataFileName_long = 'data_pen_highresol_q1e-5_long.pt'
 # true_sequence = torch.load(dataFolderName + dataFileName_long, map_location=device)
 # [test_target_zeroinit, test_input_zeroinit] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, N_T, h, lambda_r_mod, offset=0)
-# test_target = torch.empty(N_T,m,T_test)
-# test_input = torch.empty(N_T,n,T_test)
+# test_target = torch.empty(N_T,m,t_test)
+# test_input = torch.empty(N_T,n,t_test)
 ### Random init
 # print("random init testing data")
 # for test_i in range(N_T):
-#    rand_seed = random.randint(0,10000-T_test-1)
-#    test_target[test_i,:,:] = test_target_zeroinit[test_i,:,rand_seed:rand_seed+T_test]
-#    test_input[test_i,:,:] = test_input_zeroinit[test_i,:,rand_seed:rand_seed+T_test]
-# test_target = test_target_zeroinit[:,:,0:T_test]
-# test_input = test_input_zeroinit[:,:,0:T_test]
+#    rand_seed = random.randint(0,10000-t_test-1)
+#    test_target[test_i,:,:] = test_target_zeroinit[test_i,:,rand_seed:rand_seed+t_test]
+#    test_input[test_i,:,:] = test_input_zeroinit[test_i,:,rand_seed:rand_seed+t_test]
+# test_target = test_target_zeroinit[:,:,0:t_test]
+# test_input = test_input_zeroinit[:,:,0:t_test]
 
 r2_gen = torch.tensor([1])
 r_gen = torch.sqrt(r2_gen)
@@ -104,8 +104,8 @@ dataFileName = [
     "data_lor_v20_rq020_T1000.pt"
 ]  # ,'data_lor_v20_r1e-1_T2000.pt','data_lor_v20_r1e-2_T2000.pt']
 
-sys_model = SystemModel(f, q_gen, h, r_gen, T, T_test, m, n, "Lor")
-sys_model.InitSequence(m1x_0, m2x_0)
+sys_model = ExtendedSystemModel(f, q_gen, h, r_gen, T, T_test, m, n, "Lor")
+sys_model.init_sequence(m1x_0, m2x_0)
 
 # [train_input_long, train_target_long, cv_input_long, cv_target_long, test_input, test_target] = DataLoader_GPU(DatafolderName + dataFileName[rindex])
 # test_input = test_input[50:51,:,:]
@@ -136,19 +136,21 @@ for index in range(0, len(r)):
 
     # Model
 
-    # sys_model_partialf = SystemModel(fInacc, q_gen, h, r_gen, T, T_test, m, n,'lor')
+    # sys_model_partialf = LinearSystemModel(fInacc, q_gen, h, r_gen, t, t_test, m, n,'lor')
     # sys_model_partialf.InitSequence(m1x_0, m2x_0)
 
-    # sys_model_partialf_optq = SystemModel(fInacc, q[index], h, r_gen, T, T_test, m, n,'lor')
+    # sys_model_partialf_optq = LinearSystemModel(fInacc, q[index], h, r_gen, t, t_test, m, n,'lor')
     # sys_model_partialf_optq.InitSequence(m1x_0, m2x_0)
 
-    sys_model_partialh = SystemModel(f, q_gen, hInacc, r_gen, T, T_test, m, n, "lor")
-    sys_model_partialh.InitSequence(m1x_0, m2x_0)
+    sys_model_partialh = ExtendedSystemModel(
+        f, q_gen, hInacc, r_gen, T, T_test, m, n, "lor"
+    )
+    sys_model_partialh.init_sequence(m1x_0, m2x_0)
 
-    sys_model_partialh_optr = SystemModel(
+    sys_model_partialh_optr = ExtendedSystemModel(
         f, q_gen, hInacc, r[index], T, T_test, m, n, "lor"
     )
-    sys_model_partialh_optr.InitSequence(m1x_0, m2x_0)
+    sys_model_partialh_optr.init_sequence(m1x_0, m2x_0)
 
     # Evaluate EKF True
     [

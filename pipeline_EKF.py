@@ -76,10 +76,10 @@ class Pipeline_EKF:
                 if isinstance(self.model, KalmanNetNN):
                     self.model.init_sequence(self.ssModel.m1x_0)
                 else:
-                    self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.T_test)
+                    self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.t_test)
 
-                x_out_cv = torch.empty(self.ssModel.m, self.ssModel.T_test)
-                for t in range(0, self.ssModel.T_test):
+                x_out_cv = torch.empty(self.ssModel.m, self.ssModel.t_test)
+                for t in range(0, self.ssModel.t_test):
                     x_out_cv[:, t] = self.model(y_cv[:, t])
 
                 # Compute Training Loss
@@ -112,10 +112,10 @@ class Pipeline_EKF:
                 n_e = random.randint(0, self.N_E - 1)
 
                 y_training = train_input[n_e, :, :]
-                self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.T)
+                self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.t)
 
-                x_out_training = torch.empty(self.ssModel.m, self.ssModel.T)
-                for t in range(0, self.ssModel.T):
+                x_out_training = torch.empty(self.ssModel.m, self.ssModel.t)
+                for t in range(0, self.ssModel.t):
                     x_out_training[:, t] = self.model(y_training[:, t])
 
                 # Compute Training Loss
@@ -198,7 +198,7 @@ class Pipeline_EKF:
 
         torch.no_grad()
 
-        x_out_array = torch.empty(self.N_T, self.ssModel.m, self.ssModel.T_test)
+        x_out_array = torch.empty(self.N_T, self.ssModel.m, self.ssModel.t_test)
 
         start = time.time()
 
@@ -206,11 +206,11 @@ class Pipeline_EKF:
 
             y_mdl_tst = test_input[j, :, :]
 
-            self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.T_test)
+            self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.t_test)
 
-            x_out_test = torch.empty(self.ssModel.m, self.ssModel.T_test)
+            x_out_test = torch.empty(self.ssModel.m, self.ssModel.t_test)
 
-            for t in range(0, self.ssModel.T_test):
+            for t in range(0, self.ssModel.t_test):
                 x_out_test[:, t] = self.model(y_mdl_tst[:, t])
 
             self.MSE_test_linear_arr[j] = loss_fn(

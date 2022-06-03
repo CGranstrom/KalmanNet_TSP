@@ -73,8 +73,8 @@ class Pipeline_KF:
                 y_cv = cv_input[j, :, :]
                 self.model.init_sequence(self.ssModel.m1x_0)
 
-                x_out_cv = torch.empty(self.ssModel.m, self.ssModel.T)
-                for t in range(0, self.ssModel.T):
+                x_out_cv = torch.empty(self.ssModel.m, self.ssModel.t)
+                for t in range(0, self.ssModel.t):
                     x_out_cv[:, t] = self.model(y_cv[:, t])
 
                 # Compute Training Loss
@@ -109,8 +109,8 @@ class Pipeline_KF:
                 y_training = train_input[n_e, :, :]
                 self.model.init_sequence(self.ssModel.m1x_0)
 
-                x_out_training = torch.empty(self.ssModel.m, self.ssModel.T)
-                for t in range(0, self.ssModel.T):
+                x_out_training = torch.empty(self.ssModel.m, self.ssModel.t)
+                for t in range(0, self.ssModel.t):
                     x_out_training[:, t] = self.model(y_training[:, t])
 
                 # Compute Training Loss
@@ -201,9 +201,9 @@ class Pipeline_KF:
 
             self.model.init_sequence(self.ssModel.m1x_0)
 
-            x_out_test = torch.empty(self.ssModel.m, self.ssModel.T)
+            x_out_test = torch.empty(self.ssModel.m, self.ssModel.t)
 
-            for t in range(0, self.ssModel.T):
+            for t in range(0, self.ssModel.t):
                 x_out_test[:, t] = self.model(y_mdl_tst[:, t])
 
             self.MSE_test_linear_arr[j] = loss_fn(

@@ -39,8 +39,8 @@ J = 5
 ratio = delta_t_gen / delta_t_test
 
 # Length of Time Series Sequence
-# T = math.ceil(3000 / ratio)
-# T_test = math.ceil(6e6 * ratio)
+# t = math.ceil(3000 / ratio)
+# t_test = math.ceil(6e6 * ratio)
 T = 200
 T_test = 2000
 

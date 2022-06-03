@@ -35,8 +35,8 @@ class ExtendedKalmanFilter:
         # Has to be transofrmed because of EKF non-linearity
         self.R = SystemModel.R
 
-        self.T = SystemModel.T
-        self.T_test = SystemModel.T_test
+        self.T = SystemModel.t
+        self.T_test = SystemModel.t_test
 
         # Pre allocate KG array
         self.KG_array = torch.zeros((self.T_test, self.m, self.n))
@@ -111,7 +111,7 @@ class ExtendedKalmanFilter:
         self.F_T = torch.transpose(F, 0, 1)
         self.H = H
         self.H_T = torch.transpose(H, 0, 1)
-        # print(self.H,self.F,'\n')
+        # print(self.h,self.f,'\n')
 
     ### Generate Sequence ###
     #########################

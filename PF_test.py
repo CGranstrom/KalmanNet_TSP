@@ -47,7 +47,7 @@ def PFTest(SysModel, test_input, test_target, n_part=100):
     # MSE [linear]
     MSE_PF_linear_arr = torch.empty(N_T)
 
-    PF_out = torch.empty([N_T, SysModel.m, SysModel.T_test])
+    PF_out = torch.empty([N_T, SysModel.m, SysModel.t_test])
 
     start = time.time()
     sub_time = 0
@@ -57,10 +57,10 @@ def PFTest(SysModel, test_input, test_target, n_part=100):
             f"On step {j}, {j/N_T*100}% done, {N_T-j} steps remain. Previous step took {sub_time} seconds."
         )
         model = Model(SysModel, test_target[j, :, 0])
-        y_in = test_input[j, :, :].T.cpu().numpy().squeeze()
+        y_in = test_input[j, :, :].t.cpu().numpy().squeeze()
         sim = simulator.Simulator(model, u=None, y=y_in)
         sim.simulate(n_part, 0)
-        PF_out[j, :, :] = torch.from_numpy(sim.get_filtered_mean()[1:,].T).float()
+        PF_out[j, :, :] = torch.from_numpy(sim.get_filtered_mean()[1:,].t).float()
         sub_end = time.time()
         sub_time = sub_end - sub_start
 

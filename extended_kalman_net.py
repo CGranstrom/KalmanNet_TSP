@@ -27,7 +27,7 @@ class KalmanNetNN(nn.Module):
         self._init_system_dynamics(
             ss_model.f, ss_model.h, ss_model.m, ss_model.n, info_string="fullInfo"
         )
-        self.init_sequence(ss_model.m1x_0, ss_model.T)
+        self.init_sequence(ss_model.m1x_0, ss_model.t)
 
         # Number of neurons in the 1st hidden layer
         H1_KNet = (ss_model.m + ss_model.n) * 10 * 8
@@ -251,7 +251,7 @@ class KalmanNetNN(nn.Module):
     def forward(self, y):
         yt = torch.squeeze(y)
         """
-        for t in range(0, self.T):
+        for t in range(0, self.t):
             self.x_out[:, t] = self.KNet_step(y[:, t])
         """
         self.x_out = self._k_net_step(yt)

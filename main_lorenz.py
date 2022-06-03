@@ -7,7 +7,7 @@ from EKF_test import EKFTest
 from UKF_test import UKFTest
 from PF_test import PFTest
 
-from extended_system_model import SystemModel
+from extended_system_model import ExtendedSystemModel
 from extended_data import (
     DataGen,
     DataLoader,
@@ -50,7 +50,7 @@ print("Pipeline Start")
 today = datetime.today()
 now = datetime.now()
 strToday = today.strftime("%m.%d.%y")
-strNow = now.strftime("%H:%M:%S")
+strNow = now.strftime("%h:%M:%S")
 strTime = strToday + "_" + strNow
 print("Current Time =", strTime)
 
@@ -99,8 +99,8 @@ dataFileName = [
     "data_lor_v20_rq2040_T2000.pt",
     "data_lor_v20_rq3050_T2000.pt",
     "data_lor_v20_rq4060_T2000.pt",
-]  # for T=2000
-# dataFileName = ['data_lor_v20_rq020_T1000_NT100.pt','data_lor_v20_rq1030_T1000_NT100.pt','data_lor_v20_rq2040_T1000_NT100.pt','data_lor_v20_rq3050_T1000_NT100.pt']# for T=1000
+]  # for t=2000
+# dataFileName = ['data_lor_v20_rq020_T1000_NT100.pt','data_lor_v20_rq1030_T1000_NT100.pt','data_lor_v20_rq2040_T1000_NT100.pt','data_lor_v20_rq3050_T1000_NT100.pt']# for t=1000
 EKFResultName = [
     "EKF_rq020_T2000",
     "EKF_rq1030_T2000",
@@ -130,28 +130,30 @@ for index in range(0, len(r)):
     #############################
     ### Prepare System Models ###
     #############################
-    sys_model = SystemModel(f, q[index], h, r[index], T, T_test, m, n, "Lor")
-    sys_model.InitSequence(m1x_0, m2x_0)
+    sys_model = ExtendedSystemModel(f, q[index], h, r[index], T, T_test, m, n, "Lor")
+    sys_model.init_sequence(m1x_0, m2x_0)
 
-    sys_model_optq = SystemModel(f, qopt[index], h, r[index], T, T_test, m, n, "Lor")
-    sys_model_optq.InitSequence(m1x_0, m2x_0)
+    sys_model_optq = ExtendedSystemModel(
+        f, qopt[index], h, r[index], T, T_test, m, n, "Lor"
+    )
+    sys_model_optq.init_sequence(m1x_0, m2x_0)
 
-    sys_model_partialf_optq = SystemModel(
+    sys_model_partialf_optq = ExtendedSystemModel(
         fInacc, qopt_partial[index], h, r[index], T, T_test, m, n, "Lor"
     )
-    sys_model_partialf_optq.InitSequence(m1x_0, m2x_0)
+    sys_model_partialf_optq.init_sequence(m1x_0, m2x_0)
 
-    # sys_model_partialh = SystemModel(f, q[index], h_nonlinear, r[index], T, T_test, m, n,"Lor")
+    # sys_model_partialh = LinearSystemModel(f, q[index], h_nonlinear, r[index], t, t_test, m, n,"Lor")
     # sys_model_partialh.InitSequence(m1x_0, m2x_0)
 
-    # sys_model_partialh_optr = SystemModel(f, q[index], h_nonlinear, ropt, T, T_test, m, n,'lor')
+    # sys_model_partialh_optr = LinearSystemModel(f, q[index], h_nonlinear, ropt, t, t_test, m, n,'lor')
     # sys_model_partialh_optr.InitSequence(m1x_0, m2x_0)
 
     #################################
     ### Generate and load DT data ###
     #################################
     # print("Start Data Gen")
-    # DataGen(sys_model, DatafolderName + dataFileName[index], T, T_test,randomInit=False)
+    # DataGen(sys_model, DatafolderName + dataFileName[index], t, t_test,random_init=False)
     print("Data Load")
     print(dataFileName[index])
     [
@@ -167,13 +169,13 @@ for index in range(0, len(r)):
         [train_target, train_input] = Short_Traj_Split(
             train_target_long, train_input_long, T
         )
-        # [cv_target, cv_input] = Short_Traj_Split(cv_target, cv_input, T)
+        # [cv_target, cv_input] = Short_Traj_Split(cv_target, cv_input, t)
     else:
         print("no chopping")
         train_target = train_target_long[:, :, 0:T]
         train_input = train_input_long[:, :, 0:T]
-        # cv_target = cv_target[:,:,0:T]
-        # cv_input = cv_input[:,:,0:T]
+        # cv_target = cv_target[:,:,0:t]
+        # cv_input = cv_input[:,:,0:t]
 
     print("trainset size:", train_target.size())
     print("cvset size:", cv_target.size())
@@ -189,8 +191,8 @@ for index in range(0, len(r)):
    [train_target_long, train_input_long] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, N_E, h, r[rindex], offset)
    [cv_target_long, cv_input_long] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, N_CV, h, r[rindex], offset)
 
-   [train_target, train_input] = Short_Traj_Split(train_target_long, train_input_long, T)
-   [cv_target, cv_input] = Short_Traj_Split(cv_target_long, cv_input_long, T)
+   [train_target, train_input] = Short_Traj_Split(train_target_long, train_input_long, t)
+   [cv_target, cv_input] = Short_Traj_Split(cv_target_long, cv_input_long, t)
    """
     ################################
     ### Evaluate EKF, UKF and PF ###
@@ -199,7 +201,7 @@ for index in range(0, len(r)):
     # for searchindex in range(0, len(qsearch)):
     #    print("\n Searched optimal 1/q2 [dB]: ", 10 * torch.log10(1/qsearch[searchindex]**2))
 
-    #    sys_model_searchq = SystemModel(f, qsearch[searchindex], h, r[index], T, T_test, m, n,"Lor")
+    #    sys_model_searchq = LinearSystemModel(f, qsearch[searchindex], h, r[index], t, t_test, m, n,"Lor")
     #    sys_model_searchq.InitSequence(m1x_0, m2x_0)
     #    print("Evaluate EKF true")
     #    [MSE_EKF_linear_arr, MSE_EKF_linear_avg, MSE_EKF_dB_avg, EKF_KG_array, EKF_out] = EKFTest(sys_model_searchq, test_input, test_target)
@@ -211,7 +213,7 @@ for index in range(0, len(r)):
     #    [MSE_PF_linear_arr, MSE_PF_linear_avg, MSE_PF_dB_avg, PF_out] = PFTest(sys_model_searchq, test_input, test_target)
 
     #    # filters only have partial info of process model
-    #    sys_model_partialf_searchq = SystemModel(fInacc, qsearch[searchindex], h, r[index], T, T_test, m, n,'lor')
+    #    sys_model_partialf_searchq = LinearSystemModel(fInacc, qsearch[searchindex], h, r[index], t, t_test, m, n,'lor')
     #    sys_model_partialf_searchq.InitSequence(m1x_0, m2x_0)
     #    print("Evaluate EKF Partial")
     #    [MSE_EKF_linear_arr_partial, MSE_EKF_linear_avg_partial, MSE_EKF_dB_avg_partial, EKF_KG_array_partial, EKF_out_partial] = EKFTest(sys_model_partialf_searchq, test_input, test_target)
@@ -226,7 +228,7 @@ for index in range(0, len(r)):
     # for searchindex in range(0, len(rsearch)):
     #    print("\n Searched optimal 1/r2 [dB]: ", 10 * torch.log10(1/rsearch[searchindex]**2))
 
-    #    sys_model_searchr = SystemModel(f, q[index], h, rsearch[searchindex], T, T_test, m, n,"Lor")
+    #    sys_model_searchr = LinearSystemModel(f, q[index], h, rsearch[searchindex], t, t_test, m, n,"Lor")
     #    sys_model_searchr.InitSequence(m1x_0, m2x_0)
     #    print("Evaluate EKF true")
     #    [MSE_EKF_linear_arr, MSE_EKF_linear_avg, MSE_EKF_dB_avg, EKF_KG_array, EKF_out] = EKFTest(sys_model_searchr, test_input, test_target)
@@ -238,7 +240,7 @@ for index in range(0, len(r)):
     #    [MSE_PF_linear_arr, MSE_PF_linear_avg, MSE_PF_dB_avg, PF_out] = PFTest(sys_model_searchr, test_input, test_target)
 
     #    # filters only have partial info of observation model
-    #    sys_model_partialh_searchr = SystemModel(f, q[index], hInacc, rsearch[searchindex], T, T_test, m, n,"Lor")
+    #    sys_model_partialh_searchr = LinearSystemModel(f, q[index], hInacc, rsearch[searchindex], t, t_test, m, n,"Lor")
     #    sys_model_partialh_searchr.InitSequence(m1x_0, m2x_0)
     #    print("Evaluate EKF Partial")
     #    [MSE_EKF_linear_arr_partial, MSE_EKF_linear_avg_partial, MSE_EKF_dB_avg_partial, EKF_KG_array_partial, EKF_out_partial] = EKFTest( sys_model_partialh_searchr, test_input, test_target)
@@ -343,7 +345,7 @@ for index in range(0, len(r)):
 ### Evaluate k_net ###
 #####################
 ### k_net without model mismatch
-# sys_model = SystemModel(f, q[0], h, r[0], T, T_test, m, n,"Lor")# arbitary q and r
+# sys_model = LinearSystemModel(f, q[0], h, r[0], t, t_test, m, n,"Lor")# arbitary q and r
 # sys_model.InitSequence(m1x_0, m2x_0)
 # print("k_net with full model info")
 # modelFolder = 'k_net' + '/'
@@ -362,7 +364,7 @@ for index in range(0, len(r)):
 
 ### k_net with model mismatch
 # print("k_net with model mismatch")
-# sys_model_partialh = SystemModel(f, q[0], hInacc, r[0], T, T_test, m, n,"Lor")# arbitary q and r
+# sys_model_partialh = LinearSystemModel(f, q[0], hInacc, r[0], t, t_test, m, n,"Lor")# arbitary q and r
 # sys_model_partialh.InitSequence(m1x_0, m2x_0)
 # modelFolder = 'k_net' + '/'
 # KNet_Pipeline = Pipeline_EKF(strTime, "k_net", "k_net")
@@ -381,11 +383,11 @@ for index in range(0, len(r)):
 # # Save trajectories
 # # trajfolderName = 'k_net' + '/'
 # # DataResultName = traj_resultName[0] #[rindex]
-# # # EKF_sample = torch.reshape(EKF_out[0,:,:],[1,m,T_test])
-# # # EKF_Partial_sample = torch.reshape(EKF_out_partial[0,:,:],[1,m,T_test])
-# # # target_sample = torch.reshape(test_target[0,:,:],[1,m,T_test])
-# # # input_sample = torch.reshape(test_input[0,:,:],[1,n,T_test])
-# # # KNet_sample = torch.reshape(KNet_test[0,:,:],[1,m,T_test])
+# # # EKF_sample = torch.reshape(EKF_out[0,:,:],[1,m,t_test])
+# # # EKF_Partial_sample = torch.reshape(EKF_out_partial[0,:,:],[1,m,t_test])
+# # # target_sample = torch.reshape(test_target[0,:,:],[1,m,t_test])
+# # # input_sample = torch.reshape(test_input[0,:,:],[1,n,t_test])
+# # # KNet_sample = torch.reshape(KNet_test[0,:,:],[1,m,t_test])
 # # torch.save({
 # #             'k_net': KNet_test,
 # #             }, trajfolderName+DataResultName)

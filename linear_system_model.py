@@ -1,46 +1,38 @@
 import torch
 from torch.distributions.multivariate_normal import MultivariateNormal
+from parameters import delta_t, delta_t_gen, variance
 
 
-class SystemModel:
-    def __init__(self, F, q, H, r, T, T_test, outlier_p=0, rayleigh_sigma=10000):
+class LinearSystemModel:
+    def __init__(self, f, q, h, r, t, t_test):
 
-        self.outlier_p = outlier_p
-        self.rayleigh_sigma = rayleigh_sigma
-        ####################
-        ### Motion Model ###
-        ####################
-        self.F = F
-        self.m = self.F.size()[0]
+        self.outlier_p = 0
+        self.rayleigh_sigma = 10000
+
+        # motion model
+        self.f = f
+        self.m = self.f.size()[0]
 
         self.q = q
         self.Q = q * q * torch.eye(self.m)
 
-        #########################
-        ### Observation Model ###
-        #########################
-        self.H = H
-        self.n = self.H.size()[0]
+        # observation model
+        self.h = h
+        self.n = self.h.size()[0]
 
         self.r = r
         self.R = r * r * torch.eye(self.n)
 
-        # Assign T and T_test
-        self.T = T
-        self.T_test = T_test
+        # assign t and t_test
+        self.t = t
+        self.t_test = t_test
 
-    #####################
-    ### Init Sequence ###
-    #####################
-    def InitSequence(self, m1x_0, m2x_0):
+    def init_sequence(self, m1x_0, m2x_0):
 
         self.m1x_0 = m1x_0
         self.m2x_0 = m2x_0
 
-    #########################
-    ### Update Covariance ###
-    #########################
-    def UpdateCovariance_Gain(self, q, r):
+    def update_covariance_gain(self, q, r):
 
         self.q = q
         self.Q = q * q * torch.eye(self.m)
@@ -48,53 +40,46 @@ class SystemModel:
         self.r = r
         self.R = r * r * torch.eye(self.n)
 
-    def UpdateCovariance_Matrix(self, Q, R):
+    def update_covariance_matrix(self, Q, R):
 
         self.Q = Q
-
         self.R = R
 
-    #########################
-    ### Generate Sequence ###
-    #########################
-    def GenerateSequence(self, Q_gen, R_gen, T):
-        # Pre allocate an array for current state
+    def _generate_sequence(self, Q_gen, R_gen, T):
+
+        # pre-allocate an array for current state
         self.x = torch.empty(size=[self.m, T])
-        # Pre allocate an array for current observation
+        # pre-allocate an array for current observation
         self.y = torch.empty(size=[self.n, T])
-        # Set x0 to be x previous
+        # set x0 to be x previous
         self.x_prev = self.m1x_0
 
         # Outliers
         if self.outlier_p > 0:
             b_matrix = torch.bernoulli(self.outlier_p * torch.ones(T))
 
-        # Generate Sequence Iteratively
+        # generate sequence iteratively
         for t in range(0, T):
-            ########################
-            #### State Evolution ###
-            ########################
-            # Process Noise
+            # state evolution
+            # process noise
             if self.q == 0:
-                xt = self.F.matmul(self.x_prev)
+                xt = self.f.matmul(self.x_prev)
             else:
-                xt = self.F.matmul(self.x_prev)
+                xt = self.f.matmul(self.x_prev)
                 mean = torch.zeros([self.m])
                 distrib = MultivariateNormal(loc=mean, covariance_matrix=Q_gen)
                 eq = distrib.rsample()
                 # eq = torch.normal(mean, self.q)
                 eq = torch.reshape(eq[:], [self.m, 1])
-                # Additive Process Noise
+                # additive process noise
                 xt = torch.add(xt, eq)
 
-            ################
-            ### Emission ###
-            ################
-            # Observation Noise
+            # emission
+            # observation noise
             if self.r == 0:
-                yt = self.H.matmul(xt)
+                yt = self.h.matmul(xt)
             else:
-                yt = self.H.matmul(xt)
+                yt = self.h.matmul(xt)
                 mean = torch.zeros([self.n])
                 distrib = MultivariateNormal(loc=mean, covariance_matrix=R_gen)
                 er = distrib.rsample()
@@ -102,10 +87,10 @@ class SystemModel:
                 # mean = torch.zeros([self.n,1])
                 # er = torch.normal(mean, self.r)
 
-                # Additive Observation Noise
+                # additive observation noise
                 yt = torch.add(yt, er)
 
-            # Outliers
+            # outliers
             if self.outlier_p > 0:
                 if b_matrix[t] != 0:
                     btdt = self.rayleigh_sigma * torch.sqrt(
@@ -113,53 +98,42 @@ class SystemModel:
                     )
                     yt = torch.add(yt, btdt)
 
-            ########################
-            ### Squeeze to Array ###
-            ########################
-
-            # Save Current State to Trajectory Array
+            # squeeze to array
+            # save current state to trajectory array
             self.x[:, t] = torch.squeeze(xt)
 
-            # Save Current Observation to Trajectory Array
+            # save current observation to trajectory array
             self.y[:, t] = torch.squeeze(yt)
 
-            ################################
-            ### Save Current to Previous ###
-            ################################
+            # save current to previous
             self.x_prev = xt
 
-    ######################
-    ### Generate Batch ###
-    ######################
+    def generate_batch(self, size, t, random_init=False):
 
-    def GenerateBatch(self, size, T, randomInit=False, seqInit=False, T_test=0):
+        seq_init = False
+        t_test = 0
 
-        # Allocate Empty Array for Input
-        self.Input = torch.empty(size, self.n, T)
+        # allocate empty arrays for input and target
+        self.input = torch.empty(size, self.n, t)
+        self.target = torch.empty(size, self.m, t)
 
-        # Allocate Empty Array for Target
-        self.Target = torch.empty(size, self.m, T)
+        init_conditions = self.m1x_0
 
-        ### Generate Examples
-        initConditions = self.m1x_0
-
+        # generate examples
         for i in range(0, size):
-            # Generate Sequence
+            # generate sequence
+            # randomize initial conditions to get a rich dataset
 
-            # Randomize initial conditions to get a rich dataset
-            if randomInit:
-                variance = 100
-                initConditions = torch.rand_like(self.m1x_0) * variance
-            if seqInit:
-                initConditions = self.x_prev
-                if (i * T % T_test) == 0:
-                    initConditions = torch.zeros_like(self.m1x_0)
+            if random_init:
+                init_conditions = torch.rand_like(self.m1x_0) * variance
+            if seq_init:
+                init_conditions = self.x_prev
+                if (i * t % t_test) == 0:
+                    init_conditions = torch.zeros_like(self.m1x_0)
 
-            self.InitSequence(initConditions, self.m2x_0)
-            self.GenerateSequence(self.Q, self.R, T)
+            self.init_sequence(init_conditions, self.m2x_0)
+            self._generate_sequence(self.Q, self.R, t)
 
-            # Training sequence input
-            self.Input[i, :, :] = self.y
-
-            # Training sequence output
-            self.Target[i, :, :] = self.x
+            # training sequence input and output
+            self.input[i, :, :] = self.y
+            self.target[i, :, :] = self.x

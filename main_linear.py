@@ -2,7 +2,7 @@ import torch
 
 torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
 import torch.nn as nn
-from linear_system_model import SystemModel
+from linear_system_model import LinearSystemModel
 from extended_data import (
     DataGen,
     DataLoader,
@@ -52,7 +52,7 @@ print("Pipeline Start")
 today = datetime.today()
 now = datetime.now()
 strToday = today.strftime("%m.%d.%y")
-strNow = now.strftime("%H:%M:%S")
+strNow = now.strftime("%h:%M:%S")
 strTime = strToday + "_" + strNow
 print("Current Time =", strTime)
 path_results = "RTSNet/"
@@ -73,17 +73,17 @@ for index in range(0, len(r2)):
     # True model
     r = torch.sqrt(r2[index])
     q = torch.sqrt(q2[index])
-    sys_model = SystemModel(F, q, H, r, T, T_test)
-    sys_model.InitSequence(m1_0, m2_0)
+    sys_model = LinearSystemModel(F, q, H, r, T, T_test)
+    sys_model.init_sequence(m1_0, m2_0)
 
     # Mismatched model
-    sys_model_partialh = SystemModel(F, q, H_rotated, r, T, T_test)
-    sys_model_partialh.InitSequence(m1_0, m2_0)
+    sys_model_partialh = LinearSystemModel(F, q, H_rotated, r, T, T_test)
+    sys_model_partialh.init_sequence(m1_0, m2_0)
 
     ###################################
     ### Data Loader (Generate Data) ###
     ###################################
-    dataFolderName = "simulations/linear_canonical/H=I" + "/"
+    dataFolderName = "simulations/linear_canonical/h=I" + "/"
     dataFileName = [
         "2x2_rq-1010_T100.pt",
         "2x2_rq020_T100.pt",
@@ -92,7 +92,7 @@ for index in range(0, len(r2)):
         "2x2_rq3050_T100.pt",
     ]
     # print("Start Data Gen")
-    # DataGen(sys_model, dataFolderName + dataFileName[index], T, T_test,randomInit=False)
+    # DataGen(sys_model, dataFolderName + dataFileName[index], t, t_test,random_init=False)
     print("Data Load")
     [
         train_input,

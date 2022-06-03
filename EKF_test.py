@@ -18,7 +18,7 @@ def EKFTest(SysModel, test_input, test_target, modelKnowledge="full", allStates=
     EKF.InitSequence(SysModel.m1x_0, SysModel.m2x_0)
 
     KG_array = torch.zeros_like(EKF.KG_array)
-    EKF_out = torch.empty([N_T, SysModel.m, SysModel.T_test])
+    EKF_out = torch.empty([N_T, SysModel.m, SysModel.t_test])
     start = time.time()
     sub_time = 0
     for j in range(0, N_T):
