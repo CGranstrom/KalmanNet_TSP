@@ -29,14 +29,16 @@ class LinearSystemModel:
 
         # motion model
         self.f = f
-        self.m = self.f.size()[0]
+        if not isinstance(self, ExtendedSystemModel):
+            self.m = self.f.size()[0]
 
         self.q = q
         self.Q = q ** 2 * torch.eye(self.m)
 
         # observation model
         self.h = h
-        self.n = self.h.size()[0]
+        if not isinstance(self, ExtendedSystemModel):
+            self.n = self.h.size()[0]
 
         self.r = r
         self.R = r ** 2 * torch.eye(self.n)
@@ -159,8 +161,6 @@ class LinearSystemModel:
 
 class ExtendedSystemModel(LinearSystemModel):
     def __init__(self, f, q, h, r, t, t_test, m, n, model_name):
-        super().__init__(f, q, h, r, t, t_test)
-
         # motion model
         self.model_name = model_name
 
@@ -169,20 +169,19 @@ class ExtendedSystemModel(LinearSystemModel):
         self.delta_t = delta_t
         param_name = _model_param_name_map.get(self.model_name)
         if param_name:
-            self.Q = (
-                q ** 2
-                * torch.tensor(
-                    [
-                        [(param_name ** 3) / 3, (param_name ** 2) / 2],
-                        [(param_name ** 2) / 2, param_name],
-                    ]
-                )
+            self.Q = q ** 2 * torch.tensor(
+                [
+                    [(param_name ** 3) / 3, (param_name ** 2) / 2],
+                    [(param_name ** 2) / 2, param_name],
+                ]
             )
         else:
             self.Q = q ** 2 * torch.eye(self.m)
 
         # observation model
         self.n = n
+
+        super().__init__(f, q, h, r, t, t_test)
 
     def init_sequence(self, m1x_0, m2x_0):
 

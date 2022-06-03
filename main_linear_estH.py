@@ -182,7 +182,7 @@ for index in range(0, len(r2)):
     H_row2 = torch.matmul(
         torch.matmul(torch.inverse(torch.matmul(X.T, X)), X.T), Y_2
     ).to(dev, non_blocking=True)
-    H_hat = torch.cat((H_row1.t, H_row2.t), 0)
+    H_hat = torch.cat((H_row1.T, H_row2.T), 0)
     print("Estimated Observation matrix h:", H_hat)
 
     # Estimated model

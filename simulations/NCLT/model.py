@@ -34,7 +34,7 @@ def getJacobian(x, a):
 
     try:
         if x.size()[1] == 1:
-            y = torch.reshape((x.t), [x.size()[0]])
+            y = torch.reshape((x.T), [x.size()[0]])
     except:
         y = x
 

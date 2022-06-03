@@ -27,7 +27,7 @@ class KalmanFilter:
 
         self.R = SystemModel.R
 
-        self.T = SystemModel.t
+        self.t = SystemModel.t
         self.T_test = SystemModel.t_test
 
     # Predict

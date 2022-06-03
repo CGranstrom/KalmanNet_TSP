@@ -26,7 +26,7 @@ else:
 
 def f_test(x):
 
-    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).t,C)
+    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).T,C)
     A = torch.add(torch.reshape(torch.matmul(B, x), (m, m)).T, C)
 
     # Taylor Expansion for f
@@ -40,7 +40,7 @@ def f_test(x):
 
 def f_gen(x):
 
-    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).t,C)
+    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).T,C)
     A = torch.add(torch.reshape(torch.matmul(B, x), (m, m)).T, C)
 
     # Taylor Expansion for f
@@ -54,7 +54,7 @@ def f_gen(x):
 
 def f(x):
 
-    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).t,C)
+    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).T,C)
     A = (torch.add(torch.reshape(torch.matmul(B, x.to(dev)), (m, m)).T, C)).to(dev)
 
     # Taylor Expansion for f
@@ -73,7 +73,7 @@ def h(x):
 
 def fInacc(x):
 
-    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).t,C)
+    # A = torch.add(torch.einsum('nhw,wa->nh', B, x).T,C)
     A = torch.add(torch.reshape(torch.matmul(B_mod, x.to(dev)), (m, m)).T, C_mod)
 
     # Taylor Expansion for f
@@ -109,12 +109,12 @@ def h_nonlinear(x):
 def getJacobian(x, a):
 
     # if(x.size()[1] == 1):
-    #     y = torch.reshape((x.t),[x.size()[0]])
+    #     y = torch.reshape((x.T),[x.size()[0]])
     try:
         if x.size()[1] == 1:
-            y = torch.reshape((x.t), [x.size()[0]])
+            y = torch.reshape((x.T), [x.size()[0]])
     except:
-        y = torch.reshape((x.t), [x.size()[0]])
+        y = torch.reshape((x.T), [x.size()[0]])
 
     if a == "ObsAcc":
         g = h
