@@ -19,7 +19,7 @@ from UKF_test import UKFTest
 
 sys.path.insert(1, path_model)
 from model import f, fInacc, h
-from parameters import T, T_test, m, m1x_0, m2x_0, n
+from parameters import m, m1x_0, m2x_0, n, t, t_test
 
 if torch.cuda.is_available():
     dev = torch.device(
@@ -64,11 +64,11 @@ for index in range(0, len(r2)):
     # True model
     r = torch.sqrt(r2[index])
     q = torch.sqrt(q2[index])
-    sys_model = ExtendedSystemModel(f, q, h, r, T, T_test, m, n, "Toy")
+    sys_model = ExtendedSystemModel(f, q, h, r, t, t_test, m, n, "Toy")
     sys_model.init_sequence(m1x_0, m2x_0)
 
     # Mismatched model
-    sys_model_partial = ExtendedSystemModel(fInacc, q, h, r, T, T_test, m, n, "Toy")
+    sys_model_partial = ExtendedSystemModel(fInacc, q, h, r, t, t_test, m, n, "Toy")
     sys_model_partial.init_sequence(m1x_0, m2x_0)
 
     ###################################
@@ -77,7 +77,7 @@ for index in range(0, len(r2)):
     dataFolderName = "simulations/toy_problems" + "/"
     dataFileName = "T100.pt"
     print("Start Data Gen")
-    DataGen(sys_model, dataFolderName + dataFileName, T, T_test, randomInit=False)
+    DataGen(sys_model, dataFolderName + dataFileName, t, t_test, randomInit=False)
     print("Data Load")
     [
         train_input,
@@ -96,11 +96,11 @@ for index in range(0, len(r2)):
     ################################
 
     print("Searched optimal 1/q2 [dB]: ", 10 * torch.log10(1 / qopt[index] ** 2))
-    sys_model = ExtendedSystemModel(f, qopt[index], h, r, T, T_test, m, n, "Toy")
+    sys_model = ExtendedSystemModel(f, qopt[index], h, r, t, t_test, m, n, "Toy")
     sys_model.init_sequence(m1x_0, m2x_0)
 
     sys_model_partial = ExtendedSystemModel(
-        fInacc, qopt[index], h, r, T, T_test, m, n, "Toy"
+        fInacc, qopt[index], h, r, t, t_test, m, n, "Toy"
     )
     sys_model_partial.init_sequence(m1x_0, m2x_0)
     print("Evaluate Kalman Filter True")

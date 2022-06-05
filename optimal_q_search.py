@@ -21,8 +21,8 @@ from system_models import ExtendedSystemModel
 
 sys.path.insert(1, path_model)
 from model import f, fInacc, fRotate, h, hInacc
-from parameters import (T, T_test, delta_t, delta_t_gen, lambda_q_mod,
-                        lambda_r_mod, m, m1x_0, m2x_0, n)
+from parameters import (delta_t, delta_t_gen, lambda_q_mod, lambda_r_mod, m,
+                        m1x_0, m2x_0, n, t, t_test)
 
 if torch.cuda.is_available():
     device = torch.device(
@@ -88,7 +88,7 @@ dataFileName = [
     "data_lor_v20_rq020_T1000.pt"
 ]  # ,'data_lor_v20_r1e-1_T2000.pt','data_lor_v20_r1e-2_T2000.pt']
 
-sys_model = ExtendedSystemModel(f, q_gen, h, r_gen, T, T_test, m, n, "Lor")
+sys_model = ExtendedSystemModel(f, q_gen, h, r_gen, t, t_test, m, n, "Lor")
 sys_model.init_sequence(m1x_0, m2x_0)
 
 # [train_input_long, train_target_long, cv_input_long, cv_target_long, test_input, test_target] = DataLoader_GPU(DatafolderName + dataFileName[rindex])
@@ -97,7 +97,7 @@ sys_model.init_sequence(m1x_0, m2x_0)
 
 print("Start Data Gen")
 T = 1000
-DataGen(sys_model, DatafolderName + dataFileName[rindex], T, T_test)
+DataGen(sys_model, DatafolderName + dataFileName[rindex], T, t_test)
 print("Data Load")
 [
     train_input_long,
@@ -127,12 +127,12 @@ for index in range(0, len(r)):
     # sys_model_partialf_optq.InitSequence(m1x_0, m2x_0)
 
     sys_model_partialh = ExtendedSystemModel(
-        f, q_gen, hInacc, r_gen, T, T_test, m, n, "lor"
+        f, q_gen, hInacc, r_gen, T, t_test, m, n, "lor"
     )
     sys_model_partialh.init_sequence(m1x_0, m2x_0)
 
     sys_model_partialh_optr = ExtendedSystemModel(
-        f, q_gen, hInacc, r[index], T, T_test, m, n, "lor"
+        f, q_gen, hInacc, r[index], T, t_test, m, n, "lor"
     )
     sys_model_partialh_optr.init_sequence(m1x_0, m2x_0)
 
