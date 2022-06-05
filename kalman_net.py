@@ -4,8 +4,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as func
 
+from extended_kalman_net import ExtendedKalmanNet
 
-class KalmanNetNN(nn.Module):
+
+class KalmanNet(nn.Module):
     def __init__(self):
         super().__init__()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -79,18 +81,28 @@ class KalmanNetNN(nn.Module):
         # output layer
         self.KG_l3 = nn.Linear(H2, output_dims, bias=True)
 
-    def _init_system_dynamics(self, F, H):
+    def _init_system_dynamics(self, f, h, m=None, n=None, info_string=None):
         """Initialize system dynamics."""
 
-        # set state evolution matrix
-        self.F = F.to(self.device, non_blocking=True)
-        self.F_T = torch.transpose(F, 0, 1)
-        self.m = self.F.size()[0]
+        if info_string:
+            if info_string == "partialInfo":
+                self.f_string = "ModInacc"
+                self.h_string = "ObsInacc"
+            else:
+                self.f_string = "ModAcc"
+                self.h_string = "ObsAcc"
 
-        # set observation matrix
-        self.H = H.to(self.device, non_blocking=True)
-        self.H_T = torch.transpose(H, 0, 1)
-        self.n = self.H.size()[0]
+        if not isinstance(self, ExtendedKalmanNet):
+            # set state evolution matrix
+            self.f = f.to(self.device, non_blocking=True)
+            self.h = h.to(self.device, non_blocking=True)
+            self.m = self.f.size()[0]
+            self.n = self.h.size()[0]
+        else:
+            self.f, self.h, self.m, self.n = f, h, m, n
+
+        self.f_T = torch.transpose(f, 0, 1)
+        self.h_T = torch.transpose(h, 0, 1)
 
     def init_sequence(self, M1_0):
         """Initialize sequence."""
@@ -106,18 +118,18 @@ class KalmanNetNN(nn.Module):
 
         # compute the 1st moment of x based on model knowledge and without process noise
         self.state_process_prior_0 = torch.matmul(
-            self.F, self.state_process_posterior_0
+            self.f, self.state_process_posterior_0
         )
 
         # compute the 1st moment of y based on model knowledge and without noise
-        self.obs_process_0 = torch.matmul(self.H, self.state_process_prior_0)
+        self.obs_process_0 = torch.matmul(self.h, self.state_process_prior_0)
 
         # predict the 1st moment of x
         self.m1x_prev_prior = self.m1x_prior
-        self.m1x_prior = torch.matmul(self.F, self.m1x_posterior)
+        self.m1x_prior = torch.matmul(self.f, self.m1x_posterior)
 
         # predict the 1st moment of y
-        self.m1y = torch.matmul(self.H, self.m1x_prior)
+        self.m1y = torch.matmul(self.h, self.m1x_prior)
 
     def _step_k_gain_est(self, y):
         """Kalman gain estimation."""

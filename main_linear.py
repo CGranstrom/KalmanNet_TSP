@@ -10,7 +10,7 @@ from extended_data import (N_CV, N_E, N_T, DataGen, DataLoader, DataLoader_GPU,
                            H_rotated, Short_Traj_Split, T, T_test, m, m1_0,
                            m2_0, n)
 from kalman_filter_test import KFTest
-from kalman_net import KalmanNetNN
+from kalman_net import KalmanNet
 from pipeline_KF import Pipeline_KF
 from plot import Plot_RTS as Plot
 from system_models import LinearSystemModel
@@ -122,7 +122,7 @@ for index in range(0, len(r2)):
     modelFolder = "k_net" + "/"
     KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KNet_" + dataFileName[index])
     KNet_Pipeline.setssModel(sys_model)
-    KNet_model = KalmanNetNN()
+    KNet_model = KalmanNet()
     KNet_model.Build(sys_model)
     KNet_Pipeline.setModel(KNet_model)
     KNet_Pipeline.setTrainingParams(
@@ -143,7 +143,7 @@ for index in range(0, len(r2)):
     modelFolder = "k_net" + "/"
     KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KNetPartial_" + dataFileName[index])
     KNet_Pipeline.setssModel(sys_model_partialh)
-    KNet_model = KalmanNetNN()
+    KNet_model = KalmanNet()
     KNet_model.Build(sys_model_partialh)
     KNet_Pipeline.setModel(KNet_model)
     KNet_Pipeline.setTrainingParams(

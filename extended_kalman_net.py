@@ -1,4 +1,4 @@
-"""# **Class: KalmanNet**"""
+"""# **Class: ExtendedKalmanNet**"""
 
 import sys
 
@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as func
 
+from kalman_net import KalmanNet
 from path_models import path_model
 
 sys.path.insert(1, path_model)
@@ -14,7 +15,7 @@ from model import getJacobian
 nGRU = 2
 
 
-class KalmanNetNN(nn.Module):
+class ExtendedKalmanNet(KalmanNet):
     def __init__(self):
         super().__init__()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -95,23 +96,13 @@ class KalmanNetNN(nn.Module):
         # output layer
         self.KG_l3 = nn.Linear(H2, output_dims, bias=True)
 
-    def _init_system_dynamics(self, f, h, m, n, info_string="fullInfo"):
+    def _init_system_dynamics(self, f, h, m=None, n=None, info_string=None):
         """Initialize system dynamics."""
 
-        if info_string == "partialInfo":
-            self.fString = "ModInacc"
-            self.hString = "ObsInacc"
-        else:
-            self.fString = "ModAcc"
-            self.hString = "ObsAcc"
+        if not info_string:
+            info_string = "fullInfo"
 
-        # set state evolution matrix
-        self.f = f
-        self.m = m
-
-        # set observation matrix
-        self.h = h
-        self.n = n
+        super()._init_system_dynamics(f, h, m, n, info_string)
 
     def init_sequence(self, M1_0, T):
         """Initialize sequence."""
@@ -139,8 +130,8 @@ class KalmanNetNN(nn.Module):
         self.m1y = torch.squeeze(self.h(self.m1x_prior))
 
         # update Jacobians
-        # self.JFt = get_Jacobian(self.m1x_posterior, self.fString)
-        # self.JHt = get_Jacobian(self.m1x_prior, self.hString)
+        # self.JFt = get_Jacobian(self.m1x_posterior, self.f_string)
+        # self.JHt = get_Jacobian(self.m1x_prior, self.h_string)
 
         self.state_process_prior_0 = torch.squeeze(
             self.f(self.state_process_posterior_0)
@@ -257,10 +248,3 @@ class KalmanNetNN(nn.Module):
         self.x_out = self._k_net_step(yt)
 
         return self.x_out
-
-    def init_hidden(self):
-        """Initialize hidden state."""
-
-        weight = next(self.parameters()).data
-        hidden = weight.new(self.n_layers, self.batch_size, self.hidden_dim).zero_()
-        self.hn = hidden.data

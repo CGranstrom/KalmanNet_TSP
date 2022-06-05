@@ -9,7 +9,7 @@ import torch.nn as nn
 from EKF_test import EKFTest
 from extended_data import (N_CV, N_E, N_T, DataGen, DataLoader, DataLoader_GPU,
                            Decimate_and_perturbate_Data, Short_Traj_Split)
-from kalman_net import KalmanNetNN
+from kalman_net import KalmanNet
 from path_models import path_model
 from PF_test import PFTest
 from pipeline_KF import Pipeline_KF
@@ -160,7 +160,7 @@ for index in range(0, len(r2)):
     # modelFolder = 'k_net' + '/'
     # KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KalmanNet")
     # KNet_Pipeline.setssModel(sys_model)
-    # KNet_model = KalmanNetNN()
+    # KNet_model = KalmanNet()
     # KNet_model.Build(sys_model)
     # KNet_Pipeline.setModel(KNet_model)
     # KNet_Pipeline.setTrainingParams(n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4)

@@ -4,7 +4,7 @@ import time
 import torch
 import torch.nn as nn
 
-from kalman_net import KalmanNetNN
+from kalman_net import KalmanNet
 from plot import Plot
 
 
@@ -74,7 +74,7 @@ class Pipeline_EKF:
 
             for j in range(0, self.N_CV):
                 y_cv = cv_input[j, :, :]
-                if isinstance(self.model, KalmanNetNN):
+                if isinstance(self.model, KalmanNet):
                     self.model.init_sequence(self.ssModel.m1x_0)
                 else:
                     self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.t_test)
