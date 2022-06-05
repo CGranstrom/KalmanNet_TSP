@@ -156,17 +156,24 @@ for index in range(0, len(r2)):
     ##################
     ###  KalmanNet ###
     ##################
-    # print("Start k_net pipeline")
-    # modelFolder = 'k_net' + '/'
-    # KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KalmanNet")
-    # KNet_Pipeline.setssModel(sys_model)
-    # KNet_model = KalmanNet()
-    # KNet_model.Build(sys_model)
-    # KNet_Pipeline.setModel(KNet_model)
-    # KNet_Pipeline.setTrainingParams(n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4)
+    print("Start k_net pipeline")
+    modelFolder = "k_net" + "/"
+    KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KalmanNet")
+    KNet_Pipeline.setssModel(sys_model)
+    KNet_model = KalmanNet()
+    KNet_model.Build(sys_model)
+    KNet_Pipeline.setModel(KNet_model)
+    KNet_Pipeline.setTrainingParams(
+        n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4
+    )
 
-    # # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
+    # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
 
-    # KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
-    # [KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
-    # KNet_Pipeline.save()
+    KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
+    [
+        KNet_MSE_test_linear_arr,
+        KNet_MSE_test_linear_avg,
+        KNet_MSE_test_dB_avg,
+        KNet_test,
+    ] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
+    KNet_Pipeline.save()
