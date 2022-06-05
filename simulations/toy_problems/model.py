@@ -1,10 +1,22 @@
 import autograd.numpy as np
 import torch
 from autograd import grad, jacobian
-from parameters import (a_mot, a_mot_mod, a_obs, a_obs_mod, alpha_mot,
-                        alpha_mot_mod, alpha_obs, alpha_obs_mod, beta_mot,
-                        beta_mot_mod, beta_obs, beta_obs_mod, phi_mot,
-                        phi_mot_mod)
+from parameters import (
+    a_mot,
+    a_mot_mod,
+    a_obs,
+    a_obs_mod,
+    alpha_mot,
+    alpha_mot_mod,
+    alpha_obs,
+    alpha_obs_mod,
+    beta_mot,
+    beta_mot_mod,
+    beta_obs,
+    beta_obs_mod,
+    phi_mot,
+    phi_mot_mod,
+)
 from torch import autograd
 
 

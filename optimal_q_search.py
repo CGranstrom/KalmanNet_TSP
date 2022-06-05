@@ -10,19 +10,36 @@ from datetime import datetime
 import torch.nn as nn
 
 from EKF_test import EKFTest
-from extended_data import (N_CV, N_E, N_T, DataGen, DataGen_True,
-                           DataLoader_GPU, Decimate_and_perturbate_Data,
-                           Short_Traj_Split)
-from extended_kalman_net import KalmanNetNN
+from extended_data import (
+    NUM_CROSS_VAL_EXAMPLES,
+    NUM_TEST_POINTS,
+    NUM_TRAINING_EXAMPLES,
+    DataGen_True,
+    data_gen,
+    data_loader_gpu,
+    decimate_and_perturb_data,
+    short_traj_split,
+)
+from kalman_net import ExtendedKalmanNet
 from path_models import path_model
-from pipeline_EKF import Pipeline_EKF
+from pipeline_KF import PipelineEKF
 from plot import Plot_extended as Plot
 from system_models import ExtendedSystemModel
 
 sys.path.insert(1, path_model)
 from model import f, fInacc, fRotate, h, hInacc
-from parameters import (T, T_test, delta_t, delta_t_gen, lambda_q_mod,
-                        lambda_r_mod, m, m1x_0, m2x_0, n)
+from parameters import (
+    delta_t,
+    delta_t_gen,
+    lambda_q_mod,
+    lambda_r_mod,
+    m,
+    m1x_0,
+    m2x_0,
+    n,
+    t,
+    t_test,
+)
 
 if torch.cuda.is_available():
     device = torch.device(
@@ -44,7 +61,7 @@ else:
 # data_gen = 'data_gen.pt'
 # data_gen_file = torch.load(DatafolderName+data_gen, map_location=device)
 # [true_sequence] = data_gen_file['All Data']
-# [test_target, test_input] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, N_T, h, r, offset)
+# [test_target, test_input] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, NUM_TEST_POINTS, h, r, offset)
 
 # vdB = -20 # ratio v=q2/r2
 # v = 10**(vdB/10)
@@ -64,12 +81,12 @@ else:
 
 # dataFileName_long = 'data_pen_highresol_q1e-5_long.pt'
 # true_sequence = torch.load(dataFolderName + dataFileName_long, map_location=device)
-# [test_target_zeroinit, test_input_zeroinit] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, N_T, h, lambda_r_mod, offset=0)
-# test_target = torch.empty(N_T,m,t_test)
-# test_input = torch.empty(N_T,n,t_test)
+# [test_target_zeroinit, test_input_zeroinit] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, NUM_TEST_POINTS, h, lambda_r_mod, offset=0)
+# test_target = torch.empty(NUM_TEST_POINTS,m,t_test)
+# test_input = torch.empty(NUM_TEST_POINTS,n,t_test)
 ### Random init
 # print("random init testing data")
-# for test_i in range(N_T):
+# for test_i in range(NUM_TEST_POINTS):
 #    rand_seed = random.randint(0,10000-t_test-1)
 #    test_target[test_i,:,:] = test_target_zeroinit[test_i,:,rand_seed:rand_seed+t_test]
 #    test_input[test_i,:,:] = test_input_zeroinit[test_i,:,rand_seed:rand_seed+t_test]
@@ -88,7 +105,7 @@ dataFileName = [
     "data_lor_v20_rq020_T1000.pt"
 ]  # ,'data_lor_v20_r1e-1_T2000.pt','data_lor_v20_r1e-2_T2000.pt']
 
-sys_model = ExtendedSystemModel(f, q_gen, h, r_gen, T, T_test, m, n, "Lor")
+sys_model = ExtendedSystemModel(f, q_gen, h, r_gen, t, t_test, m, n, "Lor")
 sys_model.init_sequence(m1x_0, m2x_0)
 
 # [train_input_long, train_target_long, cv_input_long, cv_target_long, test_input, test_target] = DataLoader_GPU(DatafolderName + dataFileName[rindex])
@@ -97,7 +114,7 @@ sys_model.init_sequence(m1x_0, m2x_0)
 
 print("Start Data Gen")
 T = 1000
-DataGen(sys_model, DatafolderName + dataFileName[rindex], T, T_test)
+data_gen(sys_model, DatafolderName + dataFileName[rindex], T, t_test)
 print("Data Load")
 [
     train_input_long,
@@ -127,12 +144,12 @@ for index in range(0, len(r)):
     # sys_model_partialf_optq.InitSequence(m1x_0, m2x_0)
 
     sys_model_partialh = ExtendedSystemModel(
-        f, q_gen, hInacc, r_gen, T, T_test, m, n, "lor"
+        f, q_gen, hInacc, r_gen, T, t_test, m, n, "lor"
     )
     sys_model_partialh.init_sequence(m1x_0, m2x_0)
 
     sys_model_partialh_optr = ExtendedSystemModel(
-        f, q_gen, hInacc, r[index], T, T_test, m, n, "lor"
+        f, q_gen, hInacc, r[index], T, t_test, m, n, "lor"
     )
     sys_model_partialh_optr.init_sequence(m1x_0, m2x_0)
 

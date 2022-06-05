@@ -39,11 +39,11 @@ J = 5
 # Decimation ratio
 ratio = delta_t_gen / delta_t_test
 
-# Length of Time Series Sequence
+# Length of time Series Sequence
 # t = math.ceil(3000 / ratio)
 # t_test = math.ceil(6e6 * ratio)
-T = 200
-T_test = 2000
+t = 200
+t_test = 2000
 
 H_design = torch.eye(3)
 
@@ -113,9 +113,9 @@ m2x_0_mod = 0 * 0 * torch.eye(m)
 # Sampling time step
 delta_t_mod = delta_t
 
-# Length of Time Series Sequence
-T_mod = math.ceil(T * ratio)
-T_test_mod = math.ceil(T_test * ratio)
+# Length of time Series Sequence
+T_mod = math.ceil(t * ratio)
+T_test_mod = math.ceil(t_test * ratio)
 
 ##############################################
 #### Model Parameters For lorenz Atractor ####

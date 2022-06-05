@@ -14,17 +14,15 @@ else:
     dev = torch.device("cpu")
     print("Running on the CPU")
 
-#######################
-### Size of DataSet ###
-#######################
+# Size of dataset
 
-# Number of Training Examples
-N_E = 1000
+NUM_TRAINING_EXAMPLES = 1000
 
 # Number of Cross Validation Examples
-N_CV = 100
+NUM_CROSS_VAL_EXAMPLES = 100
 
-N_T = 200
+# I think this is supposed to be test points...
+NUM_TEST_POINTS = 200
 
 # Sequence Length for linear Case
 T = 100
@@ -103,7 +101,6 @@ rotate_alpha = torch.tensor([alpha_degree / 180 * torch.pi]).to(dev)
 cos_alpha = torch.cos(rotate_alpha)
 sin_alpha = torch.sin(rotate_alpha)
 rotate_matrix = torch.tensor([[cos_alpha, -sin_alpha], [sin_alpha, cos_alpha]]).to(dev)
-# print(rotate_matrix)
 F_rotated = torch.mm(F, rotate_matrix)  # inaccurate process model
 H_rotated = torch.mm(H, rotate_matrix)  # inaccurate observation model
 
@@ -115,43 +112,35 @@ def DataGen_True(SysModel_data, fileName, T):
     test_target = SysModel_data.target
 
     # torch.save({"True Traj":[test_target],
-    #             "Obs":[test_input]},fileName)
+    #             "Obs":[test_input]},filename)
     torch.save([test_input, test_target], fileName)
 
 
-def DataGen(SysModel_data, fileName, T, T_test, randomInit=False):
+def data_gen(SysModel_data, fileName, T, T_test, randomInit=False):
 
-    ##################################
-    ### Generate Training Sequence ###
-    ##################################
-    SysModel_data.generate_batch(N_E, T, random_init=randomInit)
+    # generate training sequence
+    SysModel_data.generate_batch(NUM_TRAINING_EXAMPLES, T, random_init=randomInit)
     training_input = SysModel_data.input
     training_target = SysModel_data.target
 
-    ####################################
-    ### Generate Validation Sequence ###
-    ####################################
-    SysModel_data.generate_batch(N_CV, T, random_init=randomInit)
+    # generate validation sequence
+    SysModel_data.generate_batch(NUM_CROSS_VAL_EXAMPLES, T, random_init=randomInit)
     cv_input = SysModel_data.input
     cv_target = SysModel_data.target
 
-    ##############################
-    ### Generate Test Sequence ###
-    ##############################
-    SysModel_data.generate_batch(N_T, T_test, random_init=randomInit)
+    # generate test sequence
+    SysModel_data.generate_batch(NUM_TEST_POINTS, T_test, random_init=randomInit)
     test_input = SysModel_data.input
     test_target = SysModel_data.target
 
-    #################
-    ### Save Data ###
-    #################
+    # save data
     torch.save(
         [training_input, training_target, cv_input, cv_target, test_input, test_target],
         fileName,
     )
 
 
-def DataLoader(fileName):
+def data_loader(filename):
 
     [
         training_input,
@@ -160,7 +149,7 @@ def DataLoader(fileName):
         cv_target,
         test_input,
         test_target,
-    ] = torch.load(fileName, map_location=dev)
+    ] = torch.load(filename, map_location=dev)
     return [
         training_input,
         training_target,
@@ -171,7 +160,7 @@ def DataLoader(fileName):
     ]
 
 
-def DataLoader_GPU(fileName):
+def data_loader_gpu(filename):
     [
         training_input,
         training_target,
@@ -179,7 +168,7 @@ def DataLoader_GPU(fileName):
         cv_target,
         test_input,
         test_target,
-    ] = torch.utils.data.DataLoader(torch.load(fileName), pin_memory=False)
+    ] = torch.utils.data.data_loader(torch.load(filename), pin_memory=False)
     training_input = training_input.squeeze().to(dev)
     training_target = training_target.squeeze().to(dev)
     cv_input = cv_input.squeeze().to(dev)
@@ -196,7 +185,7 @@ def DataLoader_GPU(fileName):
     ]
 
 
-def DecimateData(all_tensors, t_gen, t_mod, offset=0):
+def decimate_data(all_tensors, t_gen, t_mod, offset=0):
 
     # ratio: defines the relation between the sampling time of the true process and of the model (has to be an integer)
     ratio = round(t_mod / t_gen)
@@ -216,14 +205,14 @@ def DecimateData(all_tensors, t_gen, t_mod, offset=0):
     return all_tensors_out
 
 
-def Decimate_and_perturbate_Data(
+def decimate_and_perturb_data(
     true_process, delta_t, delta_t_mod, N_examples, h, lambda_r, offset=0
 ):
 
     # Decimate high resolution process
-    decimated_process = DecimateData(true_process, delta_t, delta_t_mod, offset)
+    decimated_process = decimate_data(true_process, delta_t, delta_t_mod, offset)
 
-    noise_free_obs = getObs(decimated_process, h)
+    noise_free_obs = get_obs(decimated_process, h)
 
     # Replicate for computation purposes
     decimated_process = torch.cat(int(N_examples) * [decimated_process])
@@ -235,7 +224,7 @@ def Decimate_and_perturbate_Data(
     return [decimated_process, observations]
 
 
-def getObs(sequences, h):
+def get_obs(sequences, h):
     i = 0
     sequences_out = torch.zeros_like(sequences)
     for sequence in sequences:
@@ -246,7 +235,7 @@ def getObs(sequences, h):
     return sequences_out
 
 
-def Short_Traj_Split(data_target, data_input, T):
+def short_traj_split(data_target, data_input, T):
     data_target = list(torch.split(data_target, T, 2))
     data_input = list(torch.split(data_input, T, 2))
     data_target.pop()

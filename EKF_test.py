@@ -52,6 +52,6 @@ def EKFTest(SysModel, test_input, test_target, modelKnowledge="full", allStates=
 
     print("EKF - MSE LOSS:", MSE_EKF_dB_avg, "[dB]")
     print("EKF - MSE STD:", MSE_EKF_dB_std, "[dB]")
-    # Print Run Time
-    print("Inference Time:", t)
+    # Print Run time
+    print("Inference time:", t)
     return [MSE_EKF_linear_arr, MSE_EKF_linear_avg, MSE_EKF_dB_avg, KG_array, EKF_out]

@@ -7,19 +7,27 @@ from datetime import datetime
 import torch.nn as nn
 
 from EKF_test import EKFTest
-from extended_data import (N_CV, N_E, N_T, DataGen, DataLoader, DataLoader_GPU,
-                           Decimate_and_perturbate_Data, Short_Traj_Split)
-from kalman_net import KalmanNetNN
+from extended_data import (
+    NUM_CROSS_VAL_EXAMPLES,
+    NUM_TEST_POINTS,
+    NUM_TRAINING_EXAMPLES,
+    data_gen,
+    data_loader,
+    data_loader_gpu,
+    decimate_and_perturb_data,
+    short_traj_split,
+)
+from kalman_net import KalmanNet
 from path_models import path_model
 from PF_test import PFTest
-from pipeline_KF import Pipeline_KF
+from pipeline_KF import PipelineKF
 from plot import Plot_RTS as Plot
 from system_models import ExtendedSystemModel
 from UKF_test import UKFTest
 
 sys.path.insert(1, path_model)
 from model import f, fInacc, h
-from parameters import T, T_test, m, m1x_0, m2x_0, n
+from parameters import m, m1x_0, m2x_0, n, t, t_test
 
 if torch.cuda.is_available():
     dev = torch.device(
@@ -35,14 +43,14 @@ else:
 print("Pipeline Start")
 
 ################
-### Get Time ###
+### Get time ###
 ################
 today = datetime.today()
 now = datetime.now()
 strToday = today.strftime("%m.%d.%y")
 strNow = now.strftime("%h:%M:%S")
 strTime = strToday + "_" + strNow
-print("Current Time =", strTime)
+print("Current time =", strTime)
 path_results = "RTSNet/"
 
 
@@ -64,11 +72,11 @@ for index in range(0, len(r2)):
     # True model
     r = torch.sqrt(r2[index])
     q = torch.sqrt(q2[index])
-    sys_model = ExtendedSystemModel(f, q, h, r, T, T_test, m, n, "Toy")
+    sys_model = ExtendedSystemModel(f, q, h, r, t, t_test, m, n, "Toy")
     sys_model.init_sequence(m1x_0, m2x_0)
 
     # Mismatched model
-    sys_model_partial = ExtendedSystemModel(fInacc, q, h, r, T, T_test, m, n, "Toy")
+    sys_model_partial = ExtendedSystemModel(fInacc, q, h, r, t, t_test, m, n, "Toy")
     sys_model_partial.init_sequence(m1x_0, m2x_0)
 
     ###################################
@@ -77,7 +85,7 @@ for index in range(0, len(r2)):
     dataFolderName = "simulations/toy_problems" + "/"
     dataFileName = "T100.pt"
     print("Start Data Gen")
-    DataGen(sys_model, dataFolderName + dataFileName, T, T_test, randomInit=False)
+    data_gen(sys_model, dataFolderName + dataFileName, t, t_test, randomInit=False)
     print("Data Load")
     [
         train_input,
@@ -86,7 +94,7 @@ for index in range(0, len(r2)):
         cv_target,
         test_input,
         test_target,
-    ] = DataLoader_GPU(dataFolderName + dataFileName)
+    ] = data_loader_gpu(dataFolderName + dataFileName)
     print("trainset size:", train_target.size())
     print("cvset size:", cv_target.size())
     print("testset size:", test_target.size())
@@ -96,11 +104,11 @@ for index in range(0, len(r2)):
     ################################
 
     print("Searched optimal 1/q2 [dB]: ", 10 * torch.log10(1 / qopt[index] ** 2))
-    sys_model = ExtendedSystemModel(f, qopt[index], h, r, T, T_test, m, n, "Toy")
+    sys_model = ExtendedSystemModel(f, qopt[index], h, r, t, t_test, m, n, "Toy")
     sys_model.init_sequence(m1x_0, m2x_0)
 
     sys_model_partial = ExtendedSystemModel(
-        fInacc, qopt[index], h, r, T, T_test, m, n, "Toy"
+        fInacc, qopt[index], h, r, t, t_test, m, n, "Toy"
     )
     sys_model_partial.init_sequence(m1x_0, m2x_0)
     print("Evaluate Kalman Filter True")
@@ -156,17 +164,31 @@ for index in range(0, len(r2)):
     ##################
     ###  KalmanNet ###
     ##################
-    # print("Start k_net pipeline")
-    # modelFolder = 'k_net' + '/'
-    # KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KalmanNet")
-    # KNet_Pipeline.setssModel(sys_model)
-    # KNet_model = KalmanNetNN()
-    # KNet_model.Build(sys_model)
-    # KNet_Pipeline.setModel(KNet_model)
-    # KNet_Pipeline.setTrainingParams(n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4)
+    print("Start k_net pipeline")
+    modelFolder = "k_net" + "/"
+    KNet_Pipeline = PipelineKF(strTime, "k_net", "KalmanNet")
+    KNet_Pipeline.set_ss_model(sys_model)
+    KNet_model = KalmanNet()
+    KNet_model.Build(sys_model)
+    KNet_Pipeline.set_model(KNet_model)
+    KNet_Pipeline.setTrainingParams(
+        n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4
+    )
 
-    # # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
+    # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
 
-    # KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
-    # [KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
-    # KNet_Pipeline.save()
+    KNet_Pipeline.NN_train(
+        NUM_TRAINING_EXAMPLES,
+        train_input,
+        train_target,
+        NUM_CROSS_VAL_EXAMPLES,
+        cv_input,
+        cv_target,
+    )
+    [
+        KNet_MSE_test_linear_arr,
+        KNet_MSE_test_linear_avg,
+        KNet_MSE_test_dB_avg,
+        KNet_test,
+    ] = KNet_Pipeline.NNTest(NUM_TEST_POINTS, test_input, test_target)
+    KNet_Pipeline.save()
