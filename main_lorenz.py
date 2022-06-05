@@ -1,27 +1,30 @@
 import torch
 
-torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
 import sys
 from datetime import datetime
 
-import torch.nn as nn
-
 from EKF_test import EKFTest
-from extended_data import (NUM_CROSS_VAL_EXAMPLES, NUM_TEST_POINTS,
-                           NUM_TRAINING_EXAMPLES, data_gen, data_loader,
-                           data_loader_gpu, decimate_and_perturb_data,
-                           short_traj_split)
+from extended_data import (
+    NUM_CROSS_VAL_EXAMPLES,
+    NUM_TEST_POINTS,
+    NUM_TRAINING_EXAMPLES,
+    data_gen,
+    data_loader,
+    data_loader_gpu,
+    decimate_and_perturb_data,
+    short_traj_split,
+)
 from kalman_net import ExtendedKalmanNet
 from path_models import path_model
 from PF_test import PFTest
 from pipeline_EKF import Pipeline_EKF
-from plot import Plot_extended as Plot
 from system_models import ExtendedSystemModel
 from UKF_test import UKFTest
-
-sys.path.insert(1, path_model)
 from model import f, fInacc, h, hInacc  # , fRotate, h_nonlinear
 from parameters import m, m1x_0, m2x_0, n, t, t_test  # ,delta_t_gen,delta_t
+
+sys.path.insert(1, path_model)
+torch.pi = torch.acos(torch.zeros(1)).item() * 2  # which is 3.1415927410125732
 
 if torch.cuda.is_available():
     dev = torch.device(

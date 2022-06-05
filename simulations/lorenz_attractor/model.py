@@ -10,9 +10,25 @@ from torch import autograd
 from path_models import path_model
 
 sys.path.insert(1, path_model)
-from parameters import (B, B_mod, C, C_mod, H_design, H_design_inv, H_mod,
-                        H_mod_inv, J, J_mod, RotMatrix, delta_t, delta_t_gen,
-                        delta_t_mod, delta_t_test, m, n)
+from parameters import (
+    B,
+    B_mod,
+    C,
+    C_mod,
+    H_design,
+    H_design_inv,
+    H_mod,
+    H_mod_inv,
+    J,
+    J_mod,
+    RotMatrix,
+    delta_t,
+    delta_t_gen,
+    delta_t_mod,
+    delta_t_test,
+    m,
+    n,
+)
 
 if torch.cuda.is_available():
     dev = torch.device(

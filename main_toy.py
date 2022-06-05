@@ -7,10 +7,16 @@ from datetime import datetime
 import torch.nn as nn
 
 from EKF_test import EKFTest
-from extended_data import (NUM_CROSS_VAL_EXAMPLES, NUM_TEST_POINTS,
-                           NUM_TRAINING_EXAMPLES, data_gen, data_loader,
-                           data_loader_gpu, decimate_and_perturb_data,
-                           short_traj_split)
+from extended_data import (
+    NUM_CROSS_VAL_EXAMPLES,
+    NUM_TEST_POINTS,
+    NUM_TRAINING_EXAMPLES,
+    data_gen,
+    data_loader,
+    data_loader_gpu,
+    decimate_and_perturb_data,
+    short_traj_split,
+)
 from kalman_net import KalmanNet
 from path_models import path_model
 from PF_test import PFTest

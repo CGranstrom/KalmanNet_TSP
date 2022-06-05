@@ -10,10 +10,16 @@ from datetime import datetime
 import torch.nn as nn
 
 from EKF_test import EKFTest
-from extended_data import (NUM_CROSS_VAL_EXAMPLES, NUM_TEST_POINTS,
-                           NUM_TRAINING_EXAMPLES, DataGen_True, data_gen,
-                           data_loader_gpu, decimate_and_perturb_data,
-                           short_traj_split)
+from extended_data import (
+    NUM_CROSS_VAL_EXAMPLES,
+    NUM_TEST_POINTS,
+    NUM_TRAINING_EXAMPLES,
+    DataGen_True,
+    data_gen,
+    data_loader_gpu,
+    decimate_and_perturb_data,
+    short_traj_split,
+)
 from kalman_net import ExtendedKalmanNet
 from path_models import path_model
 from pipeline_EKF import Pipeline_EKF
@@ -22,8 +28,18 @@ from system_models import ExtendedSystemModel
 
 sys.path.insert(1, path_model)
 from model import f, fInacc, fRotate, h, hInacc
-from parameters import (delta_t, delta_t_gen, lambda_q_mod, lambda_r_mod, m,
-                        m1x_0, m2x_0, n, t, t_test)
+from parameters import (
+    delta_t,
+    delta_t_gen,
+    lambda_q_mod,
+    lambda_r_mod,
+    m,
+    m1x_0,
+    m2x_0,
+    n,
+    t,
+    t_test,
+)
 
 if torch.cuda.is_available():
     device = torch.device(
