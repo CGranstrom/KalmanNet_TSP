@@ -7,8 +7,10 @@ from datetime import datetime
 import torch.nn as nn
 
 from EKF_test import EKFTest
-from extended_data import (N_CV, N_E, N_T, DataGen, DataLoader, DataLoader_GPU,
-                           Decimate_and_perturbate_Data, Short_Traj_Split)
+from extended_data import (NUM_CROSS_VAL_EXAMPLES, NUM_TEST_POINTS,
+                           NUM_TRAINING_EXAMPLES, data_gen, data_loader,
+                           data_loader_gpu, decimate_and_perturb_data,
+                           short_traj_split)
 from kalman_net import KalmanNet
 from path_models import path_model
 from PF_test import PFTest
@@ -77,7 +79,7 @@ for index in range(0, len(r2)):
     dataFolderName = "simulations/toy_problems" + "/"
     dataFileName = "T100.pt"
     print("Start Data Gen")
-    DataGen(sys_model, dataFolderName + dataFileName, t, t_test, randomInit=False)
+    data_gen(sys_model, dataFolderName + dataFileName, t, t_test, randomInit=False)
     print("Data Load")
     [
         train_input,
@@ -86,7 +88,7 @@ for index in range(0, len(r2)):
         cv_target,
         test_input,
         test_target,
-    ] = DataLoader_GPU(dataFolderName + dataFileName)
+    ] = data_loader_gpu(dataFolderName + dataFileName)
     print("trainset size:", train_target.size())
     print("cvset size:", cv_target.size())
     print("testset size:", test_target.size())
@@ -169,11 +171,18 @@ for index in range(0, len(r2)):
 
     # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
 
-    KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
+    KNet_Pipeline.NNTrain(
+        NUM_TRAINING_EXAMPLES,
+        train_input,
+        train_target,
+        NUM_CROSS_VAL_EXAMPLES,
+        cv_input,
+        cv_target,
+    )
     [
         KNet_MSE_test_linear_arr,
         KNet_MSE_test_linear_avg,
         KNet_MSE_test_dB_avg,
         KNet_test,
-    ] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
+    ] = KNet_Pipeline.NNTest(NUM_TEST_POINTS, test_input, test_target)
     KNet_Pipeline.save()

@@ -3,7 +3,7 @@ import time
 import torch
 import torch.nn as nn
 
-from extended_data import N_T
+from extended_data import NUM_TEST_POINTS
 from linear_kalman_filter import KalmanFilter
 
 
@@ -13,13 +13,13 @@ def KFTest(SysModel, test_input, test_target):
     loss_fn = nn.MSELoss(reduction="mean")
 
     # MSE [linear]
-    MSE_KF_linear_arr = torch.empty(N_T)
+    MSE_KF_linear_arr = torch.empty(NUM_TEST_POINTS)
 
     start = time.time()
     KF = KalmanFilter(SysModel)
     KF.InitSequence(SysModel.m1x_0, SysModel.m2x_0)
 
-    for j in range(0, N_T):
+    for j in range(0, NUM_TEST_POINTS):
 
         KF.GenerateSequence(test_input[j, :, :], KF.T_test)
 

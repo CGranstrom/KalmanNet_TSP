@@ -4,6 +4,7 @@ import time
 import torch
 import torch.nn as nn
 
+from kalman_net import KalmanNet
 from plot import Plot
 
 
@@ -202,6 +203,10 @@ class Pipeline_KF:
             y_mdl_tst = test_input[j, :, :]
 
             self.model.init_sequence(self.ssModel.m1x_0)
+            if isinstance(self.model, KalmanNet):
+                self.model.init_sequence(self.ssModel.m1x_0)
+            else:
+                self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.t_test)
 
             x_out_test = torch.empty(self.ssModel.m, self.ssModel.t)
 

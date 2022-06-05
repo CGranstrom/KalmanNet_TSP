@@ -7,8 +7,10 @@ from datetime import datetime
 import torch.nn as nn
 
 from EKF_test import EKFTest
-from extended_data import (N_CV, N_E, N_T, DataGen, DataLoader, DataLoader_GPU,
-                           Decimate_and_perturbate_Data, Short_Traj_Split)
+from extended_data import (NUM_CROSS_VAL_EXAMPLES, NUM_TEST_POINTS,
+                           NUM_TRAINING_EXAMPLES, data_gen, data_loader,
+                           data_loader_gpu, decimate_and_perturb_data,
+                           short_traj_split)
 from kalman_net import ExtendedKalmanNet
 from path_models import path_model
 from PF_test import PFTest
@@ -160,7 +162,7 @@ def test_run():
         ] = torch.load(DatafolderName + dataFileName[index], map_location=dev)
         if chop:
             print("chop training data")
-            [train_target, train_input] = Short_Traj_Split(
+            [train_target, train_input] = short_traj_split(
                 train_target_long, train_input_long, t
             )
             # [cv_target, cv_input] = Short_Traj_Split(cv_target, cv_input, t)
@@ -180,10 +182,10 @@ def test_run():
        ### Generate and load data for decimation case (chopped) ###
        ############################################################
        print("Data Gen")
-       [test_target, test_input] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, N_T, h, r[rindex], offset)
+       [test_target, test_input] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, NUM_TEST_POINTS, h, r[rindex], offset)
        print(test_target.size())
-       [train_target_long, train_input_long] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, N_E, h, r[rindex], offset)
-       [cv_target_long, cv_input_long] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, N_CV, h, r[rindex], offset)
+       [train_target_long, train_input_long] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, NUM_TRAINING_EXAMPLES, h, r[rindex], offset)
+       [cv_target_long, cv_input_long] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, NUM_CROSS_VAL_EXAMPLES, h, r[rindex], offset)
     
        [train_target, train_input] = Short_Traj_Split(train_target_long, train_input_long, t)
        [cv_target, cv_input] = Short_Traj_Split(cv_target_long, cv_input_long, t)
@@ -355,13 +357,20 @@ def test_run():
 
     k_net_pipeline.model = torch.load(model_folder + "model_kalman_net.pt")
 
-    k_net_pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
+    k_net_pipeline.NNTrain(
+        NUM_TRAINING_EXAMPLES,
+        train_input,
+        train_target,
+        NUM_CROSS_VAL_EXAMPLES,
+        cv_input,
+        cv_target,
+    )
     [
         KNet_MSE_test_linear_arr,
         KNet_MSE_test_linear_avg,
         KNet_MSE_test_dB_avg,
         KNet_test,
-    ] = k_net_pipeline.NNTest(N_T, test_input, test_target)
+    ] = k_net_pipeline.NNTest(NUM_TEST_POINTS, test_input, test_target)
     k_net_pipeline.save()
 
     ## k_net with model mismatch
@@ -382,13 +391,20 @@ def test_run():
 
     # k_net_pipeline.model = torch.load(model_folder+"model_KNet_obsmis_rq1030_T2000.pt",map_location=dev)
 
-    k_net_pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
+    k_net_pipeline.NNTrain(
+        NUM_TRAINING_EXAMPLES,
+        train_input,
+        train_target,
+        NUM_CROSS_VAL_EXAMPLES,
+        cv_input,
+        cv_target,
+    )
     [
         KNet_MSE_test_linear_arr,
         KNet_MSE_test_linear_avg,
         KNet_MSE_test_dB_avg,
         KNet_test,
-    ] = k_net_pipeline.NNTest(N_T, test_input, test_target)
+    ] = k_net_pipeline.NNTest(NUM_TEST_POINTS, test_input, test_target)
     k_net_pipeline.save()
 
     # Save trajectories

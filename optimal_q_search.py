@@ -10,9 +10,10 @@ from datetime import datetime
 import torch.nn as nn
 
 from EKF_test import EKFTest
-from extended_data import (N_CV, N_E, N_T, DataGen, DataGen_True,
-                           DataLoader_GPU, Decimate_and_perturbate_Data,
-                           Short_Traj_Split)
+from extended_data import (NUM_CROSS_VAL_EXAMPLES, NUM_TEST_POINTS,
+                           NUM_TRAINING_EXAMPLES, DataGen_True, data_gen,
+                           data_loader_gpu, decimate_and_perturb_data,
+                           short_traj_split)
 from kalman_net import ExtendedKalmanNet
 from path_models import path_model
 from pipeline_EKF import Pipeline_EKF
@@ -44,7 +45,7 @@ else:
 # data_gen = 'data_gen.pt'
 # data_gen_file = torch.load(DatafolderName+data_gen, map_location=device)
 # [true_sequence] = data_gen_file['All Data']
-# [test_target, test_input] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, N_T, h, r, offset)
+# [test_target, test_input] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, NUM_TEST_POINTS, h, r, offset)
 
 # vdB = -20 # ratio v=q2/r2
 # v = 10**(vdB/10)
@@ -64,12 +65,12 @@ else:
 
 # dataFileName_long = 'data_pen_highresol_q1e-5_long.pt'
 # true_sequence = torch.load(dataFolderName + dataFileName_long, map_location=device)
-# [test_target_zeroinit, test_input_zeroinit] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, N_T, h, lambda_r_mod, offset=0)
-# test_target = torch.empty(N_T,m,t_test)
-# test_input = torch.empty(N_T,n,t_test)
+# [test_target_zeroinit, test_input_zeroinit] = Decimate_and_perturbate_Data(true_sequence, delta_t_gen, delta_t, NUM_TEST_POINTS, h, lambda_r_mod, offset=0)
+# test_target = torch.empty(NUM_TEST_POINTS,m,t_test)
+# test_input = torch.empty(NUM_TEST_POINTS,n,t_test)
 ### Random init
 # print("random init testing data")
-# for test_i in range(N_T):
+# for test_i in range(NUM_TEST_POINTS):
 #    rand_seed = random.randint(0,10000-t_test-1)
 #    test_target[test_i,:,:] = test_target_zeroinit[test_i,:,rand_seed:rand_seed+t_test]
 #    test_input[test_i,:,:] = test_input_zeroinit[test_i,:,rand_seed:rand_seed+t_test]
@@ -97,7 +98,7 @@ sys_model.init_sequence(m1x_0, m2x_0)
 
 print("Start Data Gen")
 T = 1000
-DataGen(sys_model, DatafolderName + dataFileName[rindex], T, t_test)
+data_gen(sys_model, DatafolderName + dataFileName[rindex], T, t_test)
 print("Data Load")
 [
     train_input_long,

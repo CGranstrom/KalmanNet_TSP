@@ -5,10 +5,11 @@ from datetime import datetime
 
 import torch.nn as nn
 
-from extended_data import (N_CV, N_E, N_T, DataGen, DataLoader, DataLoader_GPU,
-                           Decimate_and_perturbate_Data, F, F_rotated, H,
-                           H_rotated, Short_Traj_Split, T, T_test, m, m1_0,
-                           m2_0, n)
+from extended_data import (NUM_CROSS_VAL_EXAMPLES, NUM_TEST_POINTS,
+                           NUM_TRAINING_EXAMPLES, F, F_rotated, H, H_rotated,
+                           T, T_test, data_gen, data_loader, data_loader_gpu,
+                           decimate_and_perturb_data, m, m1_0, m2_0, n,
+                           short_traj_split)
 from kalman_filter_test import KFTest
 from kalman_net import KalmanNet
 from pipeline_KF import Pipeline_KF
@@ -74,7 +75,7 @@ for index in range(0, len(r2)):
         "2x2_rq3050_T100.pt",
     ]
     print("Start Data Gen")
-    DataGen(
+    data_gen(
         sys_model, dataFolderName + dataFileName[index], T, T_test, randomInit=False
     )
     print("Data Load")
@@ -85,7 +86,7 @@ for index in range(0, len(r2)):
         cv_target,
         test_input,
         test_target,
-    ] = DataLoader_GPU(dataFolderName + dataFileName[index])
+    ] = data_loader_gpu(dataFolderName + dataFileName[index])
     print("trainset size:", train_target.size())
     print("cvset size:", cv_target.size())
     print("testset size:", test_target.size())
@@ -132,13 +133,20 @@ for index in range(0, len(r2)):
     )
 
     # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
-    KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
+    KNet_Pipeline.NNTrain(
+        NUM_TRAINING_EXAMPLES,
+        train_input,
+        train_target,
+        NUM_CROSS_VAL_EXAMPLES,
+        cv_input,
+        cv_target,
+    )
     [
         KNet_MSE_test_linear_arr,
         KNet_MSE_test_linear_avg,
         KNet_MSE_test_dB_avg,
         KNet_test,
-    ] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
+    ] = KNet_Pipeline.NNTest(NUM_TEST_POINTS, test_input, test_target)
     KNet_Pipeline.save()
 
     print("k_net with partial model info")
@@ -153,13 +161,20 @@ for index in range(0, len(r2)):
     )
 
     # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
-    KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
+    KNet_Pipeline.NNTrain(
+        NUM_TRAINING_EXAMPLES,
+        train_input,
+        train_target,
+        NUM_CROSS_VAL_EXAMPLES,
+        cv_input,
+        cv_target,
+    )
     [
         KNet_MSE_test_linear_arr,
         KNet_MSE_test_linear_avg,
         KNet_MSE_test_dB_avg,
         KNet_test,
-    ] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
+    ] = KNet_Pipeline.NNTest(NUM_TEST_POINTS, test_input, test_target)
     KNet_Pipeline.save()
 
     print("k_net with estimated h")
@@ -198,11 +213,18 @@ for index in range(0, len(r2)):
     )
 
     # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
-    KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target)
+    KNet_Pipeline.NNTrain(
+        NUM_TRAINING_EXAMPLES,
+        train_input,
+        train_target,
+        NUM_CROSS_VAL_EXAMPLES,
+        cv_input,
+        cv_target,
+    )
     [
         KNet_MSE_test_linear_arr,
         KNet_MSE_test_linear_avg,
         KNet_MSE_test_dB_avg,
         KNet_test,
-    ] = KNet_Pipeline.NNTest(N_T, test_input, test_target)
+    ] = KNet_Pipeline.NNTest(NUM_TEST_POINTS, test_input, test_target)
     KNet_Pipeline.save()
