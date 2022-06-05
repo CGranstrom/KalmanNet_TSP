@@ -88,6 +88,6 @@ def PFTest(SysModel, test_input, test_target, n_part=100):
 
     print("PF - MSE LOSS:", MSE_PF_dB_avg, "[dB]")
     print("PF - MSE STD:", MSE_PF_dB_std, "[dB]")
-    # Print Run Time
-    print("Inference Time:", t)
+    # Print Run time
+    print("Inference time:", t)
     return [MSE_PF_linear_arr, MSE_PF_linear_avg, MSE_PF_dB_avg, PF_out]

@@ -89,6 +89,6 @@ def UKFTest(
 
     print("UKF - MSE LOSS:", MSE_UKF_dB_avg, "[dB]")
     print("UKF - MSE STD:", MSE_UKF_dB_std, "[dB]")
-    # Print Run Time
-    print("Inference Time:", t)
+    # Print Run time
+    print("Inference time:", t)
     return [MSE_UKF_linear_arr, MSE_UKF_linear_avg, MSE_UKF_dB_avg, UKF_out]

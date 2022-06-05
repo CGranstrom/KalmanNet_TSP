@@ -22,7 +22,7 @@ from extended_data import (
 )
 from kalman_net import ExtendedKalmanNet
 from path_models import path_model
-from pipeline_EKF import Pipeline_EKF
+from pipeline_KF import PipelineEKF
 from plot import Plot_extended as Plot
 from system_models import ExtendedSystemModel
 

@@ -20,7 +20,7 @@ from extended_data import (
 from kalman_net import KalmanNet
 from path_models import path_model
 from PF_test import PFTest
-from pipeline_KF import Pipeline_KF
+from pipeline_KF import PipelineKF
 from plot import Plot_RTS as Plot
 from system_models import ExtendedSystemModel
 from UKF_test import UKFTest
@@ -43,14 +43,14 @@ else:
 print("Pipeline Start")
 
 ################
-### Get Time ###
+### Get time ###
 ################
 today = datetime.today()
 now = datetime.now()
 strToday = today.strftime("%m.%d.%y")
 strNow = now.strftime("%h:%M:%S")
 strTime = strToday + "_" + strNow
-print("Current Time =", strTime)
+print("Current time =", strTime)
 path_results = "RTSNet/"
 
 
@@ -166,18 +166,18 @@ for index in range(0, len(r2)):
     ##################
     print("Start k_net pipeline")
     modelFolder = "k_net" + "/"
-    KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KalmanNet")
-    KNet_Pipeline.setssModel(sys_model)
+    KNet_Pipeline = PipelineKF(strTime, "k_net", "KalmanNet")
+    KNet_Pipeline.set_ss_model(sys_model)
     KNet_model = KalmanNet()
     KNet_model.Build(sys_model)
-    KNet_Pipeline.setModel(KNet_model)
+    KNet_Pipeline.set_model(KNet_model)
     KNet_Pipeline.setTrainingParams(
         n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4
     )
 
     # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
 
-    KNet_Pipeline.NNTrain(
+    KNet_Pipeline.NN_train(
         NUM_TRAINING_EXAMPLES,
         train_input,
         train_target,

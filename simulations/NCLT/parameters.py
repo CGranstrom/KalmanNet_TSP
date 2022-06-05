@@ -23,7 +23,7 @@ T_test = 20
 m1x_0 = torch.zeros(m, 1)
 m2x_0 = torch.tensor([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]).float()
 
-# Time step span
+# time step span
 delta_t = 1
 
 ##########################################

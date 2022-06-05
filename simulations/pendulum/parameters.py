@@ -32,7 +32,7 @@ delta_t = 0.02
 # Decimation ratio
 ratio = delta_t_gen / delta_t
 
-# Length of Time Series Sequence
+# Length of time Series Sequence
 T = 30
 T_test = 3000
 T_gen = math.ceil(T_test / ratio)
@@ -77,7 +77,7 @@ m2x_0_mod = 0 * 0 * torch.eye(m)
 # Sampling time step
 delta_t_mod = delta_t
 
-# Length of Time Series Sequence
+# Length of time Series Sequence
 T_mod = math.ceil(T * ratio)
 T_test_mod = math.ceil(T_test * ratio)
 

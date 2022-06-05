@@ -96,7 +96,7 @@ This is a main file to search for optimal Q or R for fair comparison with KF.
 
 These files defines the testing of Particle Filter (PF) and Unscented Kalman Filter (UKF) benchmarks.
 
-* Pipeline_KF.py & Pipeline_EKF.py
+* PipelineKF.py & PipelineEKF.py
 
 These are the pipeline files for linear and non-linear cases of KalmanNet respectively. The pipeline mainly defines the Training/CV/Testing processes of KalmanNet.
 

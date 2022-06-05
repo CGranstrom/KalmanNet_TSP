@@ -24,7 +24,7 @@ def KFTest(SysModel, test_input, test_target):
         KF.GenerateSequence(test_input[j, :, :], KF.T_test)
 
         MSE_KF_linear_arr[j] = loss_fn(KF.x, test_target[j, :, :]).item()
-        # MSE_KF_linear_arr[j] = loss_fn(test_input[j, :, :], test_target[j, :, :]).item()
+        # MSE_KF_linear_arr[j] = loss_function(test_input[j, :, :], test_target[j, :, :]).item()
     end = time.time()
     t = end - start
 
@@ -37,7 +37,7 @@ def KFTest(SysModel, test_input, test_target):
 
     print("Kalman Filter - MSE LOSS:", MSE_KF_dB_avg, "[dB]")
     print("EKF - MSE STD:", MSE_KF_dB_std, "[dB]")
-    # Print Run Time
-    print("Inference Time:", t)
+    # Print Run time
+    print("Inference time:", t)
 
     return [MSE_KF_linear_arr, MSE_KF_linear_avg, MSE_KF_dB_avg]

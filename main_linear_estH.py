@@ -27,7 +27,7 @@ from extended_data import (
 )
 from kalman_filter_test import KFTest
 from kalman_net import KalmanNet
-from pipeline_KF import Pipeline_KF
+from pipeline_KF import PipelineKF
 from plot import Plot_RTS as Plot
 from system_models import LinearSystemModel
 
@@ -45,14 +45,14 @@ else:
 print("Pipeline Start")
 
 ################
-### Get Time ###
+### Get time ###
 ################
 today = datetime.today()
 now = datetime.now()
 strToday = today.strftime("%m.%d.%y")
 strNow = now.strftime("%h:%M:%S")
 strTime = strToday + "_" + strNow
-print("Current Time =", strTime)
+print("Current time =", strTime)
 path_results = "RTSNet/"
 
 ####################
@@ -138,17 +138,17 @@ for index in range(0, len(r2)):
     print("Start k_net pipeline")
     print("k_net with full model info")
     modelFolder = "k_net" + "/"
-    KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KNet_" + dataFileName[index])
-    KNet_Pipeline.setssModel(sys_model)
+    KNet_Pipeline = PipelineKF(strTime, "k_net", "KNet_" + dataFileName[index])
+    KNet_Pipeline.set_ss_model(sys_model)
     KNet_model = KalmanNet()
     KNet_model.Build(sys_model)
-    KNet_Pipeline.setModel(KNet_model)
+    KNet_Pipeline.set_model(KNet_model)
     KNet_Pipeline.setTrainingParams(
         n_Epochs=500, n_Batch=30, learningRate=1e-3, weightDecay=1e-5
     )
 
     # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
-    KNet_Pipeline.NNTrain(
+    KNet_Pipeline.NN_train(
         NUM_TRAINING_EXAMPLES,
         train_input,
         train_target,
@@ -166,17 +166,17 @@ for index in range(0, len(r2)):
 
     print("k_net with partial model info")
     modelFolder = "k_net" + "/"
-    KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KNetPartial_" + dataFileName[index])
-    KNet_Pipeline.setssModel(sys_model_partialh)
+    KNet_Pipeline = PipelineKF(strTime, "k_net", "KNetPartial_" + dataFileName[index])
+    KNet_Pipeline.set_ss_model(sys_model_partialh)
     KNet_model = KalmanNet()
     KNet_model.Build(sys_model_partialh)
-    KNet_Pipeline.setModel(KNet_model)
+    KNet_Pipeline.set_model(KNet_model)
     KNet_Pipeline.setTrainingParams(
         n_Epochs=500, n_Batch=30, learningRate=1e-3, weightDecay=1e-5
     )
 
     # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
-    KNet_Pipeline.NNTrain(
+    KNet_Pipeline.NN_train(
         NUM_TRAINING_EXAMPLES,
         train_input,
         train_target,
@@ -194,7 +194,7 @@ for index in range(0, len(r2)):
 
     print("k_net with estimated h")
     modelFolder = "k_net" + "/"
-    KNet_Pipeline = Pipeline_KF(strTime, "k_net", "KNetEstH_" + dataFileName[index])
+    KNet_Pipeline = PipelineKF(strTime, "k_net", "KNetEstH_" + dataFileName[index])
     print("True Observation matrix h:", H_rotated)
     ### Least square estimation of h
     X = torch.squeeze(train_target[:, :, 0]).to(dev, non_blocking=True)
@@ -219,16 +219,16 @@ for index in range(0, len(r2)):
     sys_model_esth = LinearSystemModel(F, q, H_hat, r, T, T_test)
     sys_model_esth.init_sequence(m1_0, m2_0)
 
-    KNet_Pipeline.setssModel(sys_model_esth)
+    KNet_Pipeline.set_ss_model(sys_model_esth)
     KNet_model = KalmanNet()
     KNet_model.Build(sys_model_esth)
-    KNet_Pipeline.setModel(KNet_model)
+    KNet_Pipeline.set_model(KNet_model)
     KNet_Pipeline.setTrainingParams(
         n_Epochs=500, n_Batch=30, learningRate=1e-3, weightDecay=1e-5
     )
 
     # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
-    KNet_Pipeline.NNTrain(
+    KNet_Pipeline.NN_train(
         NUM_TRAINING_EXAMPLES,
         train_input,
         train_target,

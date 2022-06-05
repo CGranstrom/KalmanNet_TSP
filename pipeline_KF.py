@@ -3,58 +3,64 @@ import time
 
 import torch
 import torch.nn as nn
+from torch import nn as nn
 
 from kalman_net import KalmanNet
 from plot import Plot
 
 
-class Pipeline_KF:
-    def __init__(self, Time, folderName, modelName):
+class PipelineKF:
+    def __init__(self, time, folder_name, model_name):
         super().__init__()
-        self.Time = Time
-        self.folderName = folderName + "/"
-        self.modelName = modelName
-        self.modelFileName = self.folderName + "model_" + self.modelName
-        self.PipelineName = self.folderName + "pipeline_" + self.modelName
+        self.time = time
+        self.folder_name = folder_name + "/"
+        self.model_name = model_name
+        self.model_filename = self.folder_name + "model_" + self.model_name
+        self.pipeline_name = self.folder_name + "pipeline_" + self.model_name
 
     def save(self):
-        torch.save(self, self.PipelineName)
+        torch.save(self, self.pipeline_name)
 
-    def setssModel(self, ssModel):
-        self.ssModel = ssModel
+    def set_ss_model(self, ss_model):
+        self.ss_model = ss_model
 
-    def setModel(self, model):
+    def set_model(self, model):
         self.model = model
 
-    def setTrainingParams(self, n_Epochs, n_Batch, learningRate, weightDecay):
-        self.N_Epochs = n_Epochs  # Number of Training Epochs
-        self.N_B = n_Batch  # Number of Samples in Batch
-        self.learningRate = learningRate  # Learning Rate
-        self.weightDecay = weightDecay  # L2 Weight Regularization - Weight Decay
+    def set_training_params(
+        self, n_training_epochs, n_batch_samples, learning_rate, weight_decay
+    ):
+        self.n_epochs = n_training_epochs
+        self.num_batch_samples = n_batch_samples
+        self.learning_rate = learning_rate
+        self.weight_decay = weight_decay  # L2 Weight Regularization - Weight Decay
 
-        # MSE LOSS Function
-        self.loss_fn = nn.MSELoss(reduction="mean")
+        self.loss_function = nn.MSELoss(reduction="mean")
 
         # Use the optim package to define an Optimizer that will update the weights of
         # the model for us. Here we will use Adam; the optim package contains many other
         # optimization algoriths. The first argument to the Adam constructor tells the
         # optimizer which Tensors it should update.
         self.optimizer = torch.optim.Adam(
-            self.model.parameters(), lr=self.learningRate, weight_decay=self.weightDecay
+            self.model.parameters(),
+            lr=self.learning_rate,
+            weight_decay=self.weight_decay,
         )
 
-    def NNTrain(self, n_Examples, train_input, train_target, n_CV, cv_input, cv_target):
+    def NN_train(
+        self, n_examples, train_input, train_target, n_CV, cv_input, cv_target
+    ):
 
-        self.N_E = n_Examples
-        self.N_CV = n_CV
+        self.n_examples = n_examples
+        self.n_CV = n_CV
 
-        MSE_cv_linear_batch = torch.empty([self.N_CV])
-        self.MSE_cv_linear_epoch = torch.empty([self.N_Epochs])
-        self.MSE_cv_dB_epoch = torch.empty([self.N_Epochs])
+        MSE_cv_linear_batch = torch.empty([self.n_CV])
+        self.MSE_cv_linear_epoch = torch.empty([self.n_epochs])
+        self.MSE_cv_dB_epoch = torch.empty([self.n_epochs])
 
-        MSE_train_linear_batch = torch.empty([self.N_B])
-        self.MSE_train_linear_epoch = torch.empty([self.N_Epochs])
-        self.MSE_train_dB_epoch = torch.empty([self.N_Epochs])
+        MSE_train_linear_batch = torch.empty([self.num_batch_samples])
+        self.MSE_train_linear_epoch = torch.empty([self.n_epochs])
+        self.MSE_train_dB_epoch = torch.empty([self.n_epochs])
 
         ##############
         ### Epochs ###
@@ -63,7 +69,7 @@ class Pipeline_KF:
         self.MSE_cv_dB_opt = 1000
         self.MSE_cv_idx_opt = 0
 
-        for ti in range(0, self.N_Epochs):
+        for ti in range(0, self.n_epochs):
 
             #################################
             ### Validation Sequence Batch ###
@@ -72,16 +78,24 @@ class Pipeline_KF:
             # Cross Validation Mode
             self.model.eval()
 
-            for j in range(0, self.N_CV):
+            for j in range(0, self.n_CV):
                 y_cv = cv_input[j, :, :]
-                self.model.init_sequence(self.ssModel.m1x_0)
+                if isinstance(self.model, KalmanNet):
+                    self.model.init_sequence(self.ss_model.m1x_0)
+                else:
+                    self.model.init_sequence(self.ss_model.m1x_0, self.ss_model.t_test)
 
-                x_out_cv = torch.empty(self.ssModel.m, self.ssModel.t)
-                for t in range(0, self.ssModel.t):
+                if isinstance(self, PipelineEKF):
+                    dim = self.ss_model.t_test
+                else:
+                    dim = self.ss_model.t
+
+                x_out_cv = torch.empty(self.ss_model.m, dim)
+                for t in range(0, dim):
                     x_out_cv[:, t] = self.model(y_cv[:, t])
 
                 # Compute Training Loss
-                MSE_cv_linear_batch[j] = self.loss_fn(
+                MSE_cv_linear_batch[j] = self.loss_function(
                     x_out_cv, cv_target[j, :, :]
                 ).item()
 
@@ -92,7 +106,7 @@ class Pipeline_KF:
             if self.MSE_cv_dB_epoch[ti] < self.MSE_cv_dB_opt:
                 self.MSE_cv_dB_opt = self.MSE_cv_dB_epoch[ti]
                 self.MSE_cv_idx_opt = ti
-                torch.save(self.model, self.modelFileName)
+                torch.save(self.model, self.model_filename)
 
             ###############################
             ### Training Sequence Batch ###
@@ -106,18 +120,21 @@ class Pipeline_KF:
 
             Batch_Optimizing_LOSS_sum = 0
 
-            for j in range(0, self.N_B):
-                n_e = random.randint(0, self.N_E - 1)
+            for j in range(0, self.num_batch_samples):
+                n_e = random.randint(0, self.n_examples - 1)
 
                 y_training = train_input[n_e, :, :]
-                self.model.init_sequence(self.ssModel.m1x_0)
+                if isinstance(self, PipelineEKF):
+                    self.model.init_sequence(self.ss_model.m1x_0, self.ss_model.t)
+                else:
+                    self.model.init_sequence(self.ss_model.m1x_0)
 
-                x_out_training = torch.empty(self.ssModel.m, self.ssModel.t)
-                for t in range(0, self.ssModel.t):
+                x_out_training = torch.empty(self.ss_model.m, self.ss_model.t)
+                for t in range(0, self.ss_model.t):
                     x_out_training[:, t] = self.model(y_training[:, t])
 
                 # Compute Training Loss
-                LOSS = self.loss_fn(x_out_training, train_target[n_e, :, :])
+                LOSS = self.loss_function(x_out_training, train_target[n_e, :, :])
                 MSE_train_linear_batch[j] = LOSS.item()
 
                 Batch_Optimizing_LOSS_sum = Batch_Optimizing_LOSS_sum + LOSS
@@ -141,7 +158,9 @@ class Pipeline_KF:
 
             # Backward pass: compute gradient of the loss with respect to model
             # parameters
-            Batch_Optimizing_LOSS_mean = Batch_Optimizing_LOSS_sum / self.N_B
+            Batch_Optimizing_LOSS_mean = (
+                Batch_Optimizing_LOSS_sum / self.num_batch_samples
+            )
             Batch_Optimizing_LOSS_mean.backward()
 
             # Calling the step function on an Optimizer makes an update to its
@@ -181,41 +200,52 @@ class Pipeline_KF:
                 "[dB]",
             )
 
-    def NNTest(self, n_Test, test_input, test_target):
+    def NNTest(self, n_test, test_input, test_target):
 
-        self.N_T = n_Test
+        self.n_test = n_test
 
-        self.MSE_test_linear_arr = torch.empty([self.N_T])
+        self.MSE_test_linear_arr = torch.empty([self.n_test])
 
         # MSE LOSS Function
         loss_fn = nn.MSELoss(reduction="mean")
 
-        self.model = torch.load(self.modelFileName)
+        self.model = torch.load(self.model_filename)
 
         self.model.eval()
 
         torch.no_grad()
 
+        if isinstance(self, PipelineEKF):
+            x_out_array = torch.empty(
+                self.n_test, self.ss_model.m, self.ss_model.t_test
+            )
+        else:
+            x_out_array = torch.empty(self.n_test, self.ss_model.m, self.ss_model.t)
+
         start = time.time()
 
-        for j in range(0, self.N_T):
+        for j in range(0, self.n_test):
 
             y_mdl_tst = test_input[j, :, :]
 
-            self.model.init_sequence(self.ssModel.m1x_0)
             if isinstance(self.model, KalmanNet):
-                self.model.init_sequence(self.ssModel.m1x_0)
+                self.model.init_sequence(self.ss_model.m1x_0)
             else:
-                self.model.init_sequence(self.ssModel.m1x_0, self.ssModel.t_test)
+                self.model.init_sequence(self.ss_model.m1x_0, self.ss_model.t_test)
 
-            x_out_test = torch.empty(self.ssModel.m, self.ssModel.t)
+            if isinstance(self, PipelineEKF):
+                dim = self.ss_model.t_test
+            else:
+                dim = self.ss_model.t
+            x_out_test = torch.empty(self.ss_model.m, dim)
 
-            for t in range(0, self.ssModel.t):
+            for t in range(0, dim):
                 x_out_test[:, t] = self.model(y_mdl_tst[:, t])
 
             self.MSE_test_linear_arr[j] = loss_fn(
                 x_out_test, test_target[j, :, :]
             ).item()
+            x_out_array[j, :, :] = x_out_test
 
         end = time.time()
         t = end - start
@@ -229,26 +259,42 @@ class Pipeline_KF:
         self.MSE_test_dB_std = 10 * torch.log10(self.MSE_test_dB_std)
 
         # Print MSE Cross Validation
-        str = self.modelName + "-" + "MSE Test:"
+        str = self.model_name + "-" + "MSE Test:"
         print(str, self.MSE_test_dB_avg, "[dB]")
-        str = self.modelName + "-" + "STD Test:"
+        str = self.model_name + "-" + "STD Test:"
         print(str, self.MSE_test_dB_std, "[dB]")
-        # Print Run Time
-        print("Inference Time:", t)
+        # Print Run time
+        print("Inference time:", t)
 
         return [
             self.MSE_test_linear_arr,
             self.MSE_test_linear_avg,
             self.MSE_test_dB_avg,
-            x_out_test,
+            x_out_array,  # x_out_test?
         ]
 
     def PlotTrain_KF(self, MSE_KF_linear_arr, MSE_KF_dB_avg):
 
-        self.Plot = Plot(self.folderName, self.modelName)
+        self.Plot = Plot(self.folder_name, self.model_name)
 
         self.Plot.NNPlot_epochs(
-            self.N_Epochs,
+            self.n_epochs,
+            MSE_KF_dB_avg,
+            self.MSE_test_dB_avg,
+            self.MSE_cv_dB_epoch,
+            self.MSE_train_dB_epoch,
+        )
+
+        self.Plot.NNPlot_Hist(MSE_KF_linear_arr, self.MSE_test_linear_arr)
+
+
+class PipelineEKF(PipelineKF):
+    def PlotTrain_KF(self, MSE_KF_linear_arr, MSE_KF_dB_avg):
+
+        self.Plot = Plot(self.folder_name, self.model_name)
+
+        self.Plot.NNPlot_epochs(
+            self.n_epochs,
             MSE_KF_dB_avg,
             self.MSE_test_dB_avg,
             self.MSE_cv_dB_epoch,
