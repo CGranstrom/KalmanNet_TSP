@@ -9,7 +9,7 @@ import torch.nn as nn
 from EKF_test import EKFTest
 from extended_data import (N_CV, N_E, N_T, DataGen, DataLoader, DataLoader_GPU,
                            Decimate_and_perturbate_Data, Short_Traj_Split)
-from extended_kalman_net import ExtendedKalmanNet
+from kalman_net import ExtendedKalmanNet
 from path_models import path_model
 from PF_test import PFTest
 from pipeline_EKF import Pipeline_EKF
