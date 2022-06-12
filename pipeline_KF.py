@@ -10,9 +10,9 @@ from plot import Plot
 
 
 class PipelineKF:
-    def __init__(self, time, folder_name, model_name):
+    def __init__(self, _time, folder_name, model_name):
         super().__init__()
-        self.time = time
+        self.time = _time
         self.folder_name = folder_name + "/"
         self.model_name = model_name
         self.model_filename = self.folder_name + "model_" + self.model_name
@@ -24,8 +24,8 @@ class PipelineKF:
     def set_ss_model(self, ss_model):
         self.ss_model = ss_model
 
-    def set_model(self, model):
-        self.model = model
+    def set_k_net_model(self, model):
+        self.k_net_model = model
 
     def set_training_params(
         self, n_training_epochs, n_batch_samples, learning_rate, weight_decay
@@ -38,11 +38,11 @@ class PipelineKF:
         self.loss_function = nn.MSELoss(reduction="mean")
 
         # Use the optim package to define an Optimizer that will update the weights of
-        # the model for us. Here we will use Adam; the optim package contains many other
+        # the k_net_model for us. Here we will use Adam; the optim package contains many other
         # optimization algoriths. The first argument to the Adam constructor tells the
         # optimizer which Tensors it should update.
         self.optimizer = torch.optim.Adam(
-            self.model.parameters(),
+            self.k_net_model.parameters(),
             lr=self.learning_rate,
             weight_decay=self.weight_decay,
         )
@@ -76,14 +76,16 @@ class PipelineKF:
             #################################
 
             # Cross Validation Mode
-            self.model.eval()
+            self.k_net_model.eval()
 
             for j in range(0, self.n_CV):
                 y_cv = cv_input[j, :, :]
-                if isinstance(self.model, KalmanNet):
-                    self.model.init_sequence(self.ss_model.m1x_0)
+                if isinstance(self.k_net_model, KalmanNet):
+                    self.k_net_model.init_sequence(self.ss_model.m1x_0)
                 else:
-                    self.model.init_sequence(self.ss_model.m1x_0, self.ss_model.t_test)
+                    self.k_net_model.init_sequence(
+                        self.ss_model.m1x_0, self.ss_model.t_test
+                    )
 
                 if isinstance(self, PipelineEKF):
                     dim = self.ss_model.t_test
@@ -92,7 +94,7 @@ class PipelineKF:
 
                 x_out_cv = torch.empty(self.ss_model.m, dim)
                 for t in range(0, dim):
-                    x_out_cv[:, t] = self.model(y_cv[:, t])
+                    x_out_cv[:, t] = self.k_net_model(y_cv[:, t])
 
                 # Compute Training Loss
                 MSE_cv_linear_batch[j] = self.loss_function(
@@ -106,17 +108,17 @@ class PipelineKF:
             if self.MSE_cv_dB_epoch[ti] < self.MSE_cv_dB_opt:
                 self.MSE_cv_dB_opt = self.MSE_cv_dB_epoch[ti]
                 self.MSE_cv_idx_opt = ti
-                torch.save(self.model, self.model_filename)
+                torch.save(self.k_net_model, self.model_filename)
 
             ###############################
             ### Training Sequence Batch ###
             ###############################
 
             # Training Mode
-            self.model.train()
+            self.k_net_model.train()
 
             # Init Hidden State
-            self.model.init_hidden()
+            self.k_net_model.init_hidden()
 
             Batch_Optimizing_LOSS_sum = 0
 
@@ -125,13 +127,13 @@ class PipelineKF:
 
                 y_training = train_input[n_e, :, :]
                 if isinstance(self, PipelineEKF):
-                    self.model.init_sequence(self.ss_model.m1x_0, self.ss_model.t)
+                    self.k_net_model.init_sequence(self.ss_model.m1x_0, self.ss_model.t)
                 else:
-                    self.model.init_sequence(self.ss_model.m1x_0)
+                    self.k_net_model.init_sequence(self.ss_model.m1x_0)
 
                 x_out_training = torch.empty(self.ss_model.m, self.ss_model.t)
                 for t in range(0, self.ss_model.t):
-                    x_out_training[:, t] = self.model(y_training[:, t])
+                    x_out_training[:, t] = self.k_net_model(y_training[:, t])
 
                 # Compute Training Loss
                 LOSS = self.loss_function(x_out_training, train_target[n_e, :, :])
@@ -151,12 +153,12 @@ class PipelineKF:
 
             # Before the backward pass, use the optimizer object to zero all of the
             # gradients for the variables it will update (which are the learnable
-            # weights of the model). This is because by default, gradients are
+            # weights of the k_net_model). This is because by default, gradients are
             # accumulated in buffers( i.e, not overwritten) whenever .backward()
             # is called. Checkout docs of torch.autograd.backward for more details.
             self.optimizer.zero_grad()
 
-            # Backward pass: compute gradient of the loss with respect to model
+            # Backward pass: compute gradient of the loss with respect to k_net_model
             # parameters
             Batch_Optimizing_LOSS_mean = (
                 Batch_Optimizing_LOSS_sum / self.num_batch_samples
@@ -209,9 +211,9 @@ class PipelineKF:
         # MSE LOSS Function
         loss_fn = nn.MSELoss(reduction="mean")
 
-        self.model = torch.load(self.model_filename)
+        self.k_net_model = torch.load(self.model_filename)
 
-        self.model.eval()
+        self.k_net_model.eval()
 
         torch.no_grad()
 
@@ -228,10 +230,12 @@ class PipelineKF:
 
             y_mdl_tst = test_input[j, :, :]
 
-            if isinstance(self.model, KalmanNet):
-                self.model.init_sequence(self.ss_model.m1x_0)
+            if isinstance(self.k_net_model, KalmanNet):
+                self.k_net_model.init_sequence(self.ss_model.m1x_0)
             else:
-                self.model.init_sequence(self.ss_model.m1x_0, self.ss_model.t_test)
+                self.k_net_model.init_sequence(
+                    self.ss_model.m1x_0, self.ss_model.t_test
+                )
 
             if isinstance(self, PipelineEKF):
                 dim = self.ss_model.t_test
@@ -240,7 +244,7 @@ class PipelineKF:
             x_out_test = torch.empty(self.ss_model.m, dim)
 
             for t in range(0, dim):
-                x_out_test[:, t] = self.model(y_mdl_tst[:, t])
+                x_out_test[:, t] = self.k_net_model(y_mdl_tst[:, t])
 
             self.MSE_test_linear_arr[j] = loss_fn(
                 x_out_test, test_target[j, :, :]

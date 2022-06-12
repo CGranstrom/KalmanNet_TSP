@@ -1,32 +1,55 @@
 """# **Class: KalmanNet**"""
 
 import torch
-from torch import nn as nn
+from torch import nn
 from torch.nn import functional as func
 
 # import sys
 # from path_models import path_model
 # sys.path.insert(1, path_model)
+from system_models import LinearSystemModel
 
 
 class KalmanNet(nn.Module):
     def __init__(
-        self, ss_model: "SystemModel", time_input_for_extended_net: bool = False
+        self,
+        ss_model: LinearSystemModel = None,
+        time_input_for_extended_net: bool = False,
     ):
         super().__init__()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.num_gru = 1
 
-        # moved from build()
-        self._init_system_dynamics(ss_model.f, ss_model.h, ss_model.m, ss_model.n)
+        # do not execute below if instance is going to immediately overwrite self.ss_model via torch.load()
+        if ss_model:
+            # moved from build()
+            self._init_system_dynamics(ss_model.f, ss_model.h, ss_model.m, ss_model.n)
 
-        # number of neurons in the 1st hidden layer
-        H1_KNet = (ss_model.m + ss_model.n) * 10 * 8
+            # number of neurons in the 1st hidden layer
+            H1_KNet = (ss_model.m + ss_model.n) * 10 * 8
 
-        # number of neurons in the 2nd hidden layer
-        H2_KNet = (ss_model.m * ss_model.n) * 1 * 4
+            # number of neurons in the 2nd hidden layer
+            H2_KNet = (ss_model.m * ss_model.n) * 1 * 4
 
-        self._init_k_gain_net(H1_KNet, H2_KNet, time_input_for_extended_net)
+            self._init_k_gain_net(H1_KNet, H2_KNet, time_input_for_extended_net)
+        else:
+            self.f = None
+            self.h = None
+            self.m = None
+            self.n = None
+            self.KG_l1 = None
+            self.KG_relu1 = None
+            self.input_dim = None
+            self.hidden_dim = None
+            self.n_layers = self.num_gru
+            self.batch_size = 1
+            self.seq_len_input = 1
+            self.seq_len_hidden = self.n_layers
+            self.hn = None
+            self.rnn_GRU = None
+            self.KG_l2 = None
+            self.KG_relu2 = None
+            self.KG_l3 = None
 
         # initialize attributes that are defined in other methods
 
@@ -235,7 +258,9 @@ class KalmanNet(nn.Module):
 
 class ExtendedKalmanNet(KalmanNet):
     def __init__(
-        self, ss_model: "SystemModel", time_input_for_extended_net: bool = True
+        self,
+        ss_model: LinearSystemModel = None,
+        time_input_for_extended_net: bool = True,
     ):
         super().__init__(ss_model, time_input_for_extended_net)
         self.num_gru = 2
@@ -249,9 +274,19 @@ class ExtendedKalmanNet(KalmanNet):
         self.x_out = None
         self.m1x_prior_previous = None
 
-        # moved from build()
-        # initialize Kalman gain network
-        self.init_sequence(ss_model.m1x_0, ss_model.t)
+        # moved from build(). Don't execute if instance is going to immediately overwrite self.ss_model via torch.load()
+        if ss_model:
+            # initialize Kalman gain network
+            self.init_sequence(ss_model.m1x_0, ss_model.t)
+        else:
+            self.m1x_posterior = None
+            self.m1x_posterior_previous = None
+            self.t = None
+            self.x_out = None
+            self.state_process_posterior_0 = None
+            self.m1x_prior_previous = None
+            self.i = None
+            self.k_gain_array = None
 
     # initialize Kalman gain network
     # applies to both build() and _init_k_gain_net()?

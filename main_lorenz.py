@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 
 import sys
 from datetime import datetime
@@ -349,29 +350,106 @@ def test_run():
     model_folder = "KNet" + "/"
     k_net_pipeline = PipelineKF(str_time, "k_net", "ExtendedKalmanNet")
     k_net_pipeline.set_ss_model(sys_model)
-    k_net_model = ExtendedKalmanNet(sys_model)
-    k_net_pipeline.set_model(k_net_model)
+    k_net_model = ExtendedKalmanNet()
+    k_net_pipeline.set_k_net_model(k_net_model)
+    # k_net_pipeline.set_training_params(
+    #     n_training_epochs=200, n_batch_samples=10, learning_rate=1e-3, weight_decay=1e-4
+    # )
+
+    # from main repo, doesn't work after my refactoring
+    # k_net_pipeline.k_net_model.load_state_dict(torch.load(model_folder + "model_KalmanNet_state.pt"))
+
+    current_state_dict = k_net_pipeline.k_net_model.state_dict()
+    loaded_state_dict = torch.load(model_folder + "model_KalmanNet_state.pt")
+    # new_state_dict = {k: v if v.size() == current_state_dict[k].size() else current_state_dict[k] for k, v in
+    #                   zip(current_state_dict.keys(), loaded_state_dict.values())}
+    for k, v in loaded_state_dict.items():
+        attr_name, attr_attr = k.split(".")[0], k.split(".")[1]
+        if attr_name.startswith("KG"):
+            if not getattr(k_net_pipeline.k_net_model, attr_name):
+                setattr(
+                    k_net_pipeline.k_net_model,
+                    attr_name,
+                    nn.Linear(v.shape[0], v.shape[1], bias=True),
+                )
+            setattr(
+                getattr(k_net_pipeline.k_net_model, attr_name),
+                attr_attr,
+                nn.Parameter(v),
+            )
+        else:
+            if not getattr(k_net_pipeline.k_net_model, attr_name):
+                setattr(
+                    k_net_pipeline.k_net_model, attr_name, nn.GRU(v.shape[1], 80, 1)
+                )
+            setattr(
+                getattr(k_net_pipeline.k_net_model, attr_name),
+                attr_attr,
+                nn.Parameter(v),
+            )
+
+    # k_net_pipeline.k_net_model.load_state_dict(loaded_state_dict) #, strict=False)
+
     k_net_pipeline.set_training_params(
         n_training_epochs=200, n_batch_samples=10, learning_rate=1e-3, weight_decay=1e-4
     )
 
-    # from main repo, doesn't work after my refactoring
-    # k_net_pipeline.model = torch.load(model_folder + "model_KalmanNet_state.pt")
+    # def match_state_dict(
+    #         state_dict_a: Dict[str, torch.Tensor],
+    #         state_dict_b: Dict[str, torch.Tensor],
+    # ) -> Tuple[Dict[str, torch.Tensor], Dict[str, torch.Tensor]]:
+    #     """ Filters state_dict_b to contain only states that are present in state_dict_a.
+    #
+    #     Matching happens according to two criteria:
+    #         - Is the key present in state_dict_a?
+    #         - Does the state with the same key in state_dict_a have the same shape?
+    #
+    #     Returns
+    #         (matched_state_dict, unmatched_state_dict)
+    #
+    #         States in matched_state_dict contains states from state_dict_b that are also
+    #         in state_dict_a and unmatched_state_dict contains states that have no
+    #         corresponding state in state_dict_a.
+    #
+    #         In addition: state_dict_b = matched_state_dict U unmatched_state_dict.
+    #     """
+    #     matched_state_dict = {
+    #         key: state
+    #         for (key, state) in state_dict_b.items()
+    #         if key in state_dict_a and state.shape == state_dict_a[key].shape
+    #     }
+    #     unmatched_state_dict = {
+    #         key: state
+    #         for (key, state) in state_dict_b.items()
+    #         if key not in matched_state_dict
+    #     }
+    #     return matched_state_dict, unmatched_state_dict
+
+    # new_state_dict = {k: v if v.size() == current_state_dict[k].size() else current_state_dict[k] for k, v in
+    #                   zip(current_state_dict.keys(), loaded_state_dict.values())}
 
     # my attempts at loading
-    k_net_pipeline.model = ExtendedKalmanNet(sys_model)
+    k_net_pipeline.k_net_model = ExtendedKalmanNet(sys_model)
 
     model_state_dict = torch.load(model_folder + "model_KalmanNet_state.pt")
 
     # fails with 'Unexpected key(s) in state_dict: "KG_l1.weight", "KG_l1.bias", "rnn_GRU.weight_ih_l0",', etc.
-    # k_net_pipeline.model.load_state_dict(model_state_dict)
+    k_net_pipeline.k_net_model.load_state_dict(model_state_dict)
+
+    current_model_dict = model.state_dict()
+    loaded_state_dict = torch.load(path)
+    new_state_dict = {
+        k: v if v.size() == current_model_dict[k].size() else current_model_dict[k]
+        for k, v in zip(current_model_dict.keys(), loaded_state_dict.values())
+    }
+    model.load_state_dict(new_state_dict, strict=False)
     for k, v in model_state_dict.items():
         attrs = k.split(".")
-        setattr(k_net_pipeline.model, attrs[0], v)
-        setattr(getattr(k_net_pipeline.model, attrs[0]), attrs[1], v)
-    # k_net_pipeline.model.KG_l1.weight = model_state_dict['KG_l1.weight']
+        setattr(k_net_pipeline.k_net_model, attrs[0], v)
+        setattr(getattr(k_net_pipeline.k_net_model, attrs[0]), attrs[1], v)
+    # k_net_pipeline.k_net_model.KG_l1.weight = model_state_dict['KG_l1.weight']
 
-    k_net_pipeline.model.load_state_dict(
+    k_net_pipeline.k_net_model.load_state_dict(
         torch.load(model_folder + "model_KalmanNet_state.pt"), strict=False
     )
 
@@ -401,12 +479,12 @@ def test_run():
     k_net_pipeline = PipelineKF(str_time, "k_net", "k_net")
     k_net_pipeline.set_ss_model(sys_model_partialh)
     k_net_model = ExtendedKalmanNet(sys_model_partialh)
-    k_net_pipeline.set_model(k_net_model)
+    k_net_pipeline.set_k_net_model(k_net_model)
     k_net_pipeline.set_training_params(
         n_training_epochs=200, n_batch_samples=10, learning_rate=1e-3, weight_decay=1e-4
     )
 
-    # k_net_pipeline.model = torch.load(model_folder+"model_KNet_obsmis_rq1030_T2000.pt",map_location=dev)
+    # k_net_pipeline.k_net_model = torch.load(model_folder+"model_KNet_obsmis_rq1030_T2000.pt",map_location=dev)
 
     k_net_pipeline.NN_train(
         NUM_TRAINING_EXAMPLES,

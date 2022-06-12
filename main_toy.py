@@ -169,12 +169,12 @@ for index in range(0, len(r2)):
     KNet_Pipeline = PipelineKF(strTime, "k_net", "KalmanNet")
     KNet_Pipeline.set_ss_model(sys_model)
     KNet_model = KalmanNet(sys_model)
-    KNet_Pipeline.set_model(KNet_model)
+    KNet_Pipeline.set_k_net_model(KNet_model)
     KNet_Pipeline.setTrainingParams(
         n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4
     )
 
-    # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
+    # KNet_Pipeline.k_net_model = torch.load(modelFolder+"model_KNet.pt")
 
     KNet_Pipeline.NN_train(
         NUM_TRAINING_EXAMPLES,
