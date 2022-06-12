@@ -273,9 +273,11 @@ def test_run():
     KNet_model = KalmanNetNN()
     KNet_model.Build(sys_model)
     KNet_Pipeline.setModel(KNet_model)
+    initial_model = KNet_Pipeline.model
     KNet_Pipeline.setTrainingParams(n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4)
 
     KNet_Pipeline.model = torch.load(modelFolder+"model_KalmanNet.pt")
+    updated_model = torch.load(modelFolder+"model_KalmanNet.pt")
 
     # load true model, save state dict
     model_control = torch.load(modelFolder+"model_KalmanNet.pt")
