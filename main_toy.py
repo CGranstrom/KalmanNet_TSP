@@ -168,8 +168,7 @@ for index in range(0, len(r2)):
     modelFolder = "k_net" + "/"
     KNet_Pipeline = PipelineKF(strTime, "k_net", "KalmanNet")
     KNet_Pipeline.set_ss_model(sys_model)
-    KNet_model = KalmanNet()
-    KNet_model.Build(sys_model)
+    KNet_model = KalmanNet(sys_model)
     KNet_Pipeline.set_model(KNet_model)
     KNet_Pipeline.setTrainingParams(
         n_Epochs=200, n_Batch=10, learningRate=1e-3, weightDecay=1e-4

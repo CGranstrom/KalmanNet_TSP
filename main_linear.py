@@ -138,8 +138,7 @@ for index in range(0, len(r2)):
     modelFolder = "k_net" + "/"
     KNet_Pipeline = PipelineKF(strTime, "k_net", "KNet_" + dataFileName[index])
     KNet_Pipeline.set_ss_model(sys_model)
-    KNet_model = KalmanNet()
-    KNet_model.Build(sys_model)
+    KNet_model = KalmanNet(sys_model)
     KNet_Pipeline.set_model(KNet_model)
     KNet_Pipeline.setTrainingParams(
         n_Epochs=500, n_Batch=30, learningRate=1e-3, weightDecay=1e-5
@@ -166,8 +165,7 @@ for index in range(0, len(r2)):
     modelFolder = "k_net" + "/"
     KNet_Pipeline = PipelineKF(strTime, "k_net", "KNetPartial_" + dataFileName[index])
     KNet_Pipeline.set_ss_model(sys_model_partialh)
-    KNet_model = KalmanNet()
-    KNet_model.Build(sys_model_partialh)
+    KNet_model = KalmanNet(sys_model_partialh)
     KNet_Pipeline.set_model(KNet_model)
     KNet_Pipeline.setTrainingParams(
         n_Epochs=500, n_Batch=30, learningRate=1e-3, weightDecay=1e-5

@@ -10,13 +10,14 @@ from torch.nn import functional as func
 
 
 class KalmanNet(nn.Module):
-    def __init__(self):
+    def __init__(
+        self, ss_model: "SystemModel", time_input_for_extended_net: bool = False
+    ):
         super().__init__()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.num_gru = 1
 
-    def build(self, ss_model: "SystemModel", time_input_for_extended_net: bool = False):
-
+        # moved from build()
         self._init_system_dynamics(ss_model.f, ss_model.h, ss_model.m, ss_model.n)
 
         # number of neurons in the 1st hidden layer
@@ -26,6 +27,43 @@ class KalmanNet(nn.Module):
         H2_KNet = (ss_model.m * ss_model.n) * 1 * 4
 
         self._init_k_gain_net(H1_KNet, H2_KNet, time_input_for_extended_net)
+
+        # initialize attributes that are defined in other methods
+
+        # initialize attributes from init_sequence()
+        self.m1x_prior = None
+        self.m1x_posterior = None
+        self.state_process_posterior_0 = None
+
+        # initialize attributes from _step_prior()
+        self.state_process_prior_0 = None
+        self.obs_process_0 = None
+        self.m1x_prev_prior = None
+        self.m1y = None
+
+        # initialize attributes from _step_prior()
+        self.k_gain = None
+
+    def _init_system_dynamics(self, f, h, m, n):
+        """Initialize system dynamics."""
+
+        # set state evolution matrix
+        self.f = f.to(self.device, non_blocking=True)
+        self.h = h.to(self.device, non_blocking=True)
+        self.m = self.f.size()[0]
+        self.n = self.h.size()[0]
+
+    # def build(self, ss_model: "SystemModel", time_input_for_extended_net: bool = False):
+    #
+    #     self._init_system_dynamics(ss_model.f, ss_model.h, ss_model.m, ss_model.n)
+    #
+    #     # number of neurons in the 1st hidden layer
+    #     H1_KNet = (ss_model.m + ss_model.n) * 10 * 8
+    #
+    #     # number of neurons in the 2nd hidden layer
+    #     H2_KNet = (ss_model.m * ss_model.n) * 1 * 4
+    #
+    #     self._init_k_gain_net(H1_KNet, H2_KNet, time_input_for_extended_net)
 
     def _init_k_gain_net(self, H1, H2, time_input_for_extended_net):
         """Initialize the Kalman gain network."""
@@ -93,22 +131,11 @@ class KalmanNet(nn.Module):
         # output layer
         self.KG_l3 = nn.Linear(H2, output_dims, bias=True)
 
-    def _init_system_dynamics(self, f, h, m, n):
-        """Initialize system dynamics."""
-
-        # set state evolution matrix
-        self.f = f.to(self.device, non_blocking=True)
-        self.h = h.to(self.device, non_blocking=True)
-        self.m = self.f.size()[0]
-        self.n = self.h.size()[0]
-
     def init_sequence(self, M1_0, t=None):
         """Initialize sequence."""
 
         self.m1x_prior = M1_0.to(self.device, non_blocking=True)
-
         self.m1x_posterior = M1_0.to(self.device, non_blocking=True)
-
         self.state_process_posterior_0 = M1_0.to(self.device, non_blocking=True)
 
     def _step_prior(self):  # rename to compute_priors()?
@@ -207,17 +234,31 @@ class KalmanNet(nn.Module):
 
 
 class ExtendedKalmanNet(KalmanNet):
-    def __init__(self):
-        super().__init__()
+    def __init__(
+        self, ss_model: "SystemModel", time_input_for_extended_net: bool = True
+    ):
+        super().__init__(ss_model, time_input_for_extended_net)
         self.num_gru = 2
+
+        # initialize attributes that are defined in other methods
+        # initialize attributes from init_sequence()
+        self.m1x_posterior_previous = None
+        self.k_gain_array = None
+        self.i = None
+        self.t = None
+        self.x_out = None
+        self.m1x_prior_previous = None
+
+        # moved from build()
+        # initialize Kalman gain network
+        self.init_sequence(ss_model.m1x_0, ss_model.t)
 
     # initialize Kalman gain network
     # applies to both build() and _init_k_gain_net()?
 
-    def build(self, ss_model: "SystemModel", time_input_for_extended_net: bool = True):
-
-        super().build(ss_model, time_input_for_extended_net)
-        self.init_sequence(ss_model.m1x_0, ss_model.t)
+    # def build(self, ss_model: "SystemModel", time_input_for_extended_net: bool = True):
+    #
+    #     super().build(ss_model, time_input_for_extended_net)
 
     def _init_system_dynamics(self, f, h, m=None, n=None):
         """Initialize system dynamics."""
@@ -241,7 +282,7 @@ class ExtendedKalmanNet(KalmanNet):
         self.i = 0
         self.k_gain_array = torch.zeros((self.t, self.m, self.n))
 
-    def step_prior(self):  # rename to compute_priors()?
+    def _step_prior(self):  # rename to compute_priors()?
         """Compute priors."""
 
         # predict the 1st moment of x
@@ -310,7 +351,7 @@ class ExtendedKalmanNet(KalmanNet):
         """KalmanNet step."""
 
         # compute priors
-        self.step_prior()
+        self._step_prior()
 
         # compute kalman gain
         self._step_k_gain_est(y)

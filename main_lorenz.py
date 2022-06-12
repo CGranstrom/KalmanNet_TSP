@@ -346,17 +346,34 @@ def test_run():
     )  # arbitary q and r
     sys_model.init_sequence(m1x_0, m2x_0)
     print("k_net with full model info")
-    model_folder = "k_net" + "/"
+    model_folder = "KNet" + "/"
     k_net_pipeline = PipelineKF(str_time, "k_net", "ExtendedKalmanNet")
     k_net_pipeline.set_ss_model(sys_model)
-    k_net_model = ExtendedKalmanNet()
-    k_net_model.build(sys_model)
+    k_net_model = ExtendedKalmanNet(sys_model)
     k_net_pipeline.set_model(k_net_model)
     k_net_pipeline.set_training_params(
         n_training_epochs=200, n_batch_samples=10, learning_rate=1e-3, weight_decay=1e-4
     )
 
-    k_net_pipeline.model = torch.load(model_folder + "model_kalman_net.pt")
+    # from main repo, doesn't work after my refactoring
+    # k_net_pipeline.model = torch.load(model_folder + "model_KalmanNet_state.pt")
+
+    # my attempts at loading
+    k_net_pipeline.model = ExtendedKalmanNet(sys_model)
+
+    model_state_dict = torch.load(model_folder + "model_KalmanNet_state.pt")
+
+    # fails with 'Unexpected key(s) in state_dict: "KG_l1.weight", "KG_l1.bias", "rnn_GRU.weight_ih_l0",', etc.
+    # k_net_pipeline.model.load_state_dict(model_state_dict)
+    for k, v in model_state_dict.items():
+        attrs = k.split(".")
+        setattr(k_net_pipeline.model, attrs[0], v)
+        setattr(getattr(k_net_pipeline.model, attrs[0]), attrs[1], v)
+    # k_net_pipeline.model.KG_l1.weight = model_state_dict['KG_l1.weight']
+
+    k_net_pipeline.model.load_state_dict(
+        torch.load(model_folder + "model_KalmanNet_state.pt"), strict=False
+    )
 
     k_net_pipeline.NN_train(
         NUM_TRAINING_EXAMPLES,
@@ -383,8 +400,7 @@ def test_run():
     model_folder = "k_net" + "/"
     k_net_pipeline = PipelineKF(str_time, "k_net", "k_net")
     k_net_pipeline.set_ss_model(sys_model_partialh)
-    k_net_model = ExtendedKalmanNet()
-    k_net_model.Build(sys_model_partialh)
+    k_net_model = ExtendedKalmanNet(sys_model_partialh)
     k_net_pipeline.set_model(k_net_model)
     k_net_pipeline.set_training_params(
         n_training_epochs=200, n_batch_samples=10, learning_rate=1e-3, weight_decay=1e-4
