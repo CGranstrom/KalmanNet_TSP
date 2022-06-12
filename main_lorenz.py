@@ -277,10 +277,18 @@ def test_run():
 
     KNet_Pipeline.model = torch.load(modelFolder+"model_KalmanNet.pt")
 
-    # torch.save({'state_dict': KNet_Pipeline.model.state_dict(), 'use_se': True},
-    #            modelFolder + "model_KalmanNet_state.pt")
+    # load true model, save state dict
+    model_control = torch.load(modelFolder+"model_KalmanNet.pt")
+    torch.save(model_control.state_dict(), modelFolder + "model_KalmanNet_state.pt")
 
-    torch.save(KNet_Pipeline.model.state_dict(), modelFolder + "model_KalmanNet_state.pt")
+    # try to create model from state_dict
+    model_control_state_dict = torch.load(modelFolder+"model_KalmanNet_state.pt")
+    model_test = KalmanNetNN()
+    # fails with RuntimeError: Error(s) in loading state_dict for KalmanNetNN:
+    # E           	Unexpected key(s) in state_dict: "KG_l1.weight", "KG_l1.bias", etc
+    model_test.load_state_dict(model_control_state_dict)
+    a = 1
+
     KNet_Pipeline.model = torch.load(modelFolder+"model_KalmanNet_state.pt")
 
     # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet_obsmis_rq1030_T2000.pt",map_location=dev)
