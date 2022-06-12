@@ -281,6 +281,8 @@ def test_run():
     #            modelFolder + "model_KalmanNet_state.pt")
 
     torch.save(KNet_Pipeline.model.state_dict(), modelFolder + "model_KalmanNet_state.pt")
+    KNet_Pipeline.model = torch.load(modelFolder+"model_KalmanNet_state.pt")
+
     # KNet_Pipeline.model = torch.load(modelFolder+"model_KNet_obsmis_rq1030_T2000.pt",map_location=dev)
 
 
