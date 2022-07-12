@@ -352,17 +352,10 @@ def test_run():
     k_net_pipeline.set_ss_model(sys_model)
     k_net_model = ExtendedKalmanNet()
     k_net_pipeline.set_k_net_model(k_net_model)
-    # k_net_pipeline.set_training_params(
-    #     n_training_epochs=200, n_batch_samples=10, learning_rate=1e-3, weight_decay=1e-4
-    # )
 
-    # from main repo, doesn't work after my refactoring
-    # k_net_pipeline.k_net_model.load_state_dict(torch.load(model_folder + "model_KalmanNet_state.pt"))
-
-    current_state_dict = k_net_pipeline.k_net_model.state_dict()
     loaded_state_dict = torch.load(model_folder + "model_KalmanNet_state.pt")
-    # new_state_dict = {k: v if v.size() == current_state_dict[k].size() else current_state_dict[k] for k, v in
-    #                   zip(current_state_dict.keys(), loaded_state_dict.values())}
+
+    # verbose deserialization needed: repo refactored, but binary PyTorch files were not saved in a compatible format
     for k, v in loaded_state_dict.items():
         attr_name, attr_attr = k.split(".")[0], k.split(".")[1]
         if attr_name.startswith("KG"):
@@ -388,69 +381,8 @@ def test_run():
                 nn.Parameter(v),
             )
 
-    # k_net_pipeline.k_net_model.load_state_dict(loaded_state_dict) #, strict=False)
-
     k_net_pipeline.set_training_params(
         n_training_epochs=200, n_batch_samples=10, learning_rate=1e-3, weight_decay=1e-4
-    )
-
-    # def match_state_dict(
-    #         state_dict_a: Dict[str, torch.Tensor],
-    #         state_dict_b: Dict[str, torch.Tensor],
-    # ) -> Tuple[Dict[str, torch.Tensor], Dict[str, torch.Tensor]]:
-    #     """ Filters state_dict_b to contain only states that are present in state_dict_a.
-    #
-    #     Matching happens according to two criteria:
-    #         - Is the key present in state_dict_a?
-    #         - Does the state with the same key in state_dict_a have the same shape?
-    #
-    #     Returns
-    #         (matched_state_dict, unmatched_state_dict)
-    #
-    #         States in matched_state_dict contains states from state_dict_b that are also
-    #         in state_dict_a and unmatched_state_dict contains states that have no
-    #         corresponding state in state_dict_a.
-    #
-    #         In addition: state_dict_b = matched_state_dict U unmatched_state_dict.
-    #     """
-    #     matched_state_dict = {
-    #         key: state
-    #         for (key, state) in state_dict_b.items()
-    #         if key in state_dict_a and state.shape == state_dict_a[key].shape
-    #     }
-    #     unmatched_state_dict = {
-    #         key: state
-    #         for (key, state) in state_dict_b.items()
-    #         if key not in matched_state_dict
-    #     }
-    #     return matched_state_dict, unmatched_state_dict
-
-    # new_state_dict = {k: v if v.size() == current_state_dict[k].size() else current_state_dict[k] for k, v in
-    #                   zip(current_state_dict.keys(), loaded_state_dict.values())}
-
-    # my attempts at loading
-    k_net_pipeline.k_net_model = ExtendedKalmanNet(sys_model)
-
-    model_state_dict = torch.load(model_folder + "model_KalmanNet_state.pt")
-
-    # fails with 'Unexpected key(s) in state_dict: "KG_l1.weight", "KG_l1.bias", "rnn_GRU.weight_ih_l0",', etc.
-    k_net_pipeline.k_net_model.load_state_dict(model_state_dict)
-
-    current_model_dict = model.state_dict()
-    loaded_state_dict = torch.load(path)
-    new_state_dict = {
-        k: v if v.size() == current_model_dict[k].size() else current_model_dict[k]
-        for k, v in zip(current_model_dict.keys(), loaded_state_dict.values())
-    }
-    model.load_state_dict(new_state_dict, strict=False)
-    for k, v in model_state_dict.items():
-        attrs = k.split(".")
-        setattr(k_net_pipeline.k_net_model, attrs[0], v)
-        setattr(getattr(k_net_pipeline.k_net_model, attrs[0]), attrs[1], v)
-    # k_net_pipeline.k_net_model.KG_l1.weight = model_state_dict['KG_l1.weight']
-
-    k_net_pipeline.k_net_model.load_state_dict(
-        torch.load(model_folder + "model_KalmanNet_state.pt"), strict=False
     )
 
     k_net_pipeline.NN_train(
@@ -518,10 +450,10 @@ def test_run():
     EKFfolderName = "k_net" + "/"
     torch.save(
         {
-            "MSE_EKF_linear_arr": MSE_EKF_linear_arr,
-            "MSE_EKF_dB_avg": MSE_EKF_dB_avg,
-            "MSE_EKF_linear_arr_partial": MSE_EKF_linear_arr_partial,
-            "MSE_EKF_dB_avg_partial": MSE_EKF_dB_avg_partial,
+            # "MSE_EKF_linear_arr": MSE_EKF_linear_arr,
+            # "MSE_EKF_dB_avg": MSE_EKF_dB_avg,
+            # "MSE_EKF_linear_arr_partial": MSE_EKF_linear_arr_partial,
+            # "MSE_EKF_dB_avg_partial": MSE_EKF_dB_avg_partial,
             # 'MSE_EKF_linear_arr_partialoptr': MSE_EKF_linear_arr_partialoptr,
             # 'MSE_EKF_dB_avg_partialoptr': MSE_EKF_dB_avg_partialoptr,
             "KNet_MSE_test_linear_arr": KNet_MSE_test_linear_arr,
