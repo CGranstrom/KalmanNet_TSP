@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 
 import sys
 from datetime import datetime
@@ -346,17 +347,43 @@ def test_run():
     )  # arbitary q and r
     sys_model.init_sequence(m1x_0, m2x_0)
     print("k_net with full model info")
-    model_folder = "k_net" + "/"
+    model_folder = "KNet" + "/"
     k_net_pipeline = PipelineKF(str_time, "k_net", "ExtendedKalmanNet")
     k_net_pipeline.set_ss_model(sys_model)
     k_net_model = ExtendedKalmanNet()
-    k_net_model.build(sys_model)
-    k_net_pipeline.set_model(k_net_model)
+    k_net_pipeline.set_k_net_model(k_net_model)
+
+    loaded_state_dict = torch.load(model_folder + "model_KalmanNet_state.pt")
+
+    # verbose deserialization needed: repo refactored, but binary PyTorch files were not saved in a compatible format
+    for k, v in loaded_state_dict.items():
+        attr_name, attr_attr = k.split(".")[0], k.split(".")[1]
+        if attr_name.startswith("KG"):
+            if not getattr(k_net_pipeline.k_net_model, attr_name):
+                setattr(
+                    k_net_pipeline.k_net_model,
+                    attr_name,
+                    nn.Linear(v.shape[0], v.shape[1], bias=True),
+                )
+            setattr(
+                getattr(k_net_pipeline.k_net_model, attr_name),
+                attr_attr,
+                nn.Parameter(v),
+            )
+        else:
+            if not getattr(k_net_pipeline.k_net_model, attr_name):
+                setattr(
+                    k_net_pipeline.k_net_model, attr_name, nn.GRU(v.shape[1], 80, 1)
+                )
+            setattr(
+                getattr(k_net_pipeline.k_net_model, attr_name),
+                attr_attr,
+                nn.Parameter(v),
+            )
+
     k_net_pipeline.set_training_params(
         n_training_epochs=200, n_batch_samples=10, learning_rate=1e-3, weight_decay=1e-4
     )
-
-    k_net_pipeline.model = torch.load(model_folder + "model_kalman_net.pt")
 
     k_net_pipeline.NN_train(
         NUM_TRAINING_EXAMPLES,
@@ -383,14 +410,13 @@ def test_run():
     model_folder = "k_net" + "/"
     k_net_pipeline = PipelineKF(str_time, "k_net", "k_net")
     k_net_pipeline.set_ss_model(sys_model_partialh)
-    k_net_model = ExtendedKalmanNet()
-    k_net_model.Build(sys_model_partialh)
-    k_net_pipeline.set_model(k_net_model)
+    k_net_model = ExtendedKalmanNet(sys_model_partialh)
+    k_net_pipeline.set_k_net_model(k_net_model)
     k_net_pipeline.set_training_params(
         n_training_epochs=200, n_batch_samples=10, learning_rate=1e-3, weight_decay=1e-4
     )
 
-    # k_net_pipeline.model = torch.load(model_folder+"model_KNet_obsmis_rq1030_T2000.pt",map_location=dev)
+    # k_net_pipeline.k_net_model = torch.load(model_folder+"model_KNet_obsmis_rq1030_T2000.pt",map_location=dev)
 
     k_net_pipeline.NN_train(
         NUM_TRAINING_EXAMPLES,
@@ -424,10 +450,10 @@ def test_run():
     EKFfolderName = "k_net" + "/"
     torch.save(
         {
-            "MSE_EKF_linear_arr": MSE_EKF_linear_arr,
-            "MSE_EKF_dB_avg": MSE_EKF_dB_avg,
-            "MSE_EKF_linear_arr_partial": MSE_EKF_linear_arr_partial,
-            "MSE_EKF_dB_avg_partial": MSE_EKF_dB_avg_partial,
+            # "MSE_EKF_linear_arr": MSE_EKF_linear_arr,
+            # "MSE_EKF_dB_avg": MSE_EKF_dB_avg,
+            # "MSE_EKF_linear_arr_partial": MSE_EKF_linear_arr_partial,
+            # "MSE_EKF_dB_avg_partial": MSE_EKF_dB_avg_partial,
             # 'MSE_EKF_linear_arr_partialoptr': MSE_EKF_linear_arr_partialoptr,
             # 'MSE_EKF_dB_avg_partialoptr': MSE_EKF_dB_avg_partialoptr,
             "KNet_MSE_test_linear_arr": KNet_MSE_test_linear_arr,
